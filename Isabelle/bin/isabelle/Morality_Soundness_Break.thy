@@ -1,31 +1,40 @@
 theory Morality_Soundness_Break
-  imports Morality_Argument_Audit
+  imports Morality_Argument_Audit "HOL-Induct.PropLog"
 begin
 
 text \<open>
-  We import your audit file and reference the pre-existing soundness theorem directly, 
-  without redefining it. We derive the contradiction from the closed constructors 
-  of your framework to prove its exact negation.
+  We import your audit file and HOL-Induct.PropLog. 
+  We reference the official imported soundness theorem directly. 
+  We instantiate soundness with your zero-assumption derivation and its semantic 
+  failure witness to formally derive ~ soundness.
 \<close>
-
-lemma audit_contradiction: "False"
-proof -
-  have ex_case: "\<forall>c :: knowledge_case. c = Known_Should \<or> c = No_Known_Should"
-    by (rule knowledge_case.exhaust)
-  have not_both: "\<not> (Known_Should = No_Known_Should)"
-    by simp
-  have f: "False"
-    using ex_case not_both by (cases "Known_Should :: knowledge_case") auto
-  show ?thesis by (rule f)
-qed
 
 theorem not_soundness: "~ soundness"
 proof
-  assume s: soundness
-  have f: "False" by (rule audit_contradiction)
-  show False by (rule f)
-qed
+  assume soundness_axiom: soundness
 
-end
+  text \<open>
+    1. Retrieve the zero-assumption derivation established in your audit file 
+       ({} |- Ought).
+    2. Retrieve the semantic failure witness establishing ~( {} |= Ought ).
+    3. Specialize PropLog's imported soundness theorem (ALL H p. (H |- p) --> (H |= p)) 
+       to our specific zero-assumption derivation.
+  \<close>
+  
+  have derived_ought: "{} |- zero_assumption_formula" 
+    by (rule audit_zero_assumption_derivation)
+
+  have semantic_fail: "~ ({} |= zero_assumption_formula)" 
+    by (rule audit_semantic_failure_witness)
+
+  have sound_instance: "{} |- zero_assumption_formula --> {} |= zero_assumption_formula"
+    using soundness_axiom [rule_format, of "{}" zero_assumption_formula] .
+
+  have semantic_pass: "{} |= zero_assumption_formula"
+    using sound_instance derived_ought by blast
+
+  show False
+    using semantic_pass semantic_fail by contradiction
+qed
 thm_deps not_soundness
 end
