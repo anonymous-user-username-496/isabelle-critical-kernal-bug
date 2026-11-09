@@ -19,9 +19,9 @@ qed
 
 text \<open>
   2. Directly target the official soundness theorem from HOL-Induct.PropLog 
-     and prove its exact negation (¬ soundness) using the contradiction.
+     and prove its exact negation (~ soundness) using the contradiction.
 \<close>
-theorem not_soundness: "¬ soundness"
+theorem not_soundness: "~ soundness"
 proof
   assume s: soundness
   have f: "False" by (rule audit_contradiction)
