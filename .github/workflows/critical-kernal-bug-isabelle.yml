@@ -92,7 +92,7 @@ jobs:
         run: |
           set -euo pipefail
           ISABELLE="$GITHUB_WORKSPACE/.ci-deps/Isabelle${ISABELLE_VERSION}/bin/isabelle"
-          "$ISABELLE" build -v -j 2 -o threads=2 \
+          "$ISABELLE" build -c -v -j 2 -o threads=2 \
             -d "$GITHUB_WORKSPACE/.ci-deps/CondNormReasHOL" \
             -d "$GITHUB_WORKSPACE/Isabelle/bin/isabelle" \
             Argument_Audit 2>&1 | tee "$RUNNER_TEMP/isabelle-build.log"
