@@ -109,5 +109,5 @@ jobs:
         run: |
           set -euo pipefail
 
-          gh attestation verify test_results.log \
+          gh attestation verify isabelle-build.log \
             --repo "$GITHUB_REPOSITORY"
