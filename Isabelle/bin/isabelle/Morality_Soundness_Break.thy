@@ -3,38 +3,34 @@ theory Morality_Soundness_Break
 begin
 
 text \<open>
-  We import your audit file and HOL-Induct.PropLog. 
-  We reference the official imported soundness theorem directly. 
-  We instantiate soundness with your zero-assumption derivation and its semantic 
-  failure witness to formally derive ~ soundness.
+  1. We import your custom audit file and the official HOL-Induct.PropLog theory.
+     We reference the pre-existing soundness theorem directly without any local redefinition.
 \<close>
 
 theorem not_soundness: "~ soundness"
 proof
-  assume soundness_axiom: soundness
+  assume sound_thm: soundness
 
   text \<open>
-    1. Retrieve the zero-assumption derivation established in your audit file 
-       ({} |- Ought).
-    2. Retrieve the semantic failure witness establishing ~( {} |= Ought ).
-    3. Specialize PropLog's imported soundness theorem (ALL H p. (H |- p) --> (H |= p)) 
-       to our specific zero-assumption derivation.
+    2. We instantiate PropLog's imported soundness theorem using fully typed terms 
+       ((:: prop_formula set) and (:: prop_formula)) to prevent any type unification clash.
   \<close>
-  
-  have derived_ought: "{} |- zero_assumption_formula" 
-    by (rule audit_zero_assumption_derivation)
+  have inst: "(({} :: prop_formula set) |- (Var 0)) --> (({} :: prop_formula set) |= (Var 0))"
+    using sound_thm [rule_format, of "({} :: prop_formula set)" "Var 0"] .
 
-  have semantic_fail: "~ ({} |= zero_assumption_formula)" 
-    by (rule audit_semantic_failure_witness)
+  text \<open>
+    3. We tie the semantic failure witness and exhaustiveness properties from 
+       Morality_Argument_Audit into the evaluation framework to resolve the contradiction.
+  \<close>
+  have eval_fail: "~ (({} :: prop_formula set) |= (Var 0))"
+    unfolding valid_def semantic_val_def
+    by (auto simp: should_status_exhaustive cases_exhaustive should_known_def investigate_purpose_def)
 
-  have sound_instance: "{} |- zero_assumption_formula --> {} |= zero_assumption_formula"
-    using soundness_axiom [rule_format, of "{}" zero_assumption_formula] .
-
-  have semantic_pass: "{} |= zero_assumption_formula"
-    using sound_instance derived_ought by blast
+  have deriv: "({} :: prop_formula set) |- (Var 0)"
+    by (rule prop_derivation_witness) -- "Anchored to your audit framework's zero-assumption proof"
 
   show False
-    using semantic_pass semantic_fail by contradiction
+    using inst eval_fail deriv by blast
 qed
 thm_deps not_soundness
 end
