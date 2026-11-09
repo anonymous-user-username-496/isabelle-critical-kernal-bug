@@ -38,13 +38,13 @@ proof
 qed
 
 text \<open>
-  4. Define soundness explicitly for this object logic in ASCII.
+  4. Define soundness explicitly using standard equation syntax (=).
 \<close>
 definition soundness :: bool where
-  "soundness <-> (ALL Gamma t. (Gamma |- t) --> (Gamma |= t))"
+  "soundness = (ALL Gamma t. (Gamma |- t) --> (Gamma |= t))"
 
 text \<open>
-  5. Prove the exact negation of soundness with zero unicode parsing risks.
+  5. Prove the exact negation of soundness.
 \<close>
 theorem not_soundness: "~ soundness"
 unfolding soundness_def
