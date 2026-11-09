@@ -1,4 +1,4 @@
-session Argument_Audit = options [document = false]
+session Argument_Audit = "HOL" + options [document = false]
   sessions
     CondNormReasHOL
   theories
