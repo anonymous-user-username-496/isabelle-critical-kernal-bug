@@ -1,0 +1,6 @@
+session Argument_Audit = options [document = false]
+  sessions
+    CondNormReasHOL
+  theories
+    Morality_Soundness_Break
+    Morality_Argument_Audit
