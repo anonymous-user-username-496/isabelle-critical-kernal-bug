@@ -27,5 +27,5 @@ proof
   have f: "False" by (rule audit_contradiction)
   show False by (rule f)
 qed
-thm_deps not-soundness
+thm_deps not_soundness
 end
