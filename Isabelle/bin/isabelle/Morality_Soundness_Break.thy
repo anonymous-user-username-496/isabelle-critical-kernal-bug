@@ -49,5 +49,6 @@ proof
   have not_sem: "\<not> ({} \<models>\<^sub>m T_Investigate)" by (rule semantic_failure_witness)
   show False using sem not_sem by contradiction
 qed
-
+thm_oracles not_soundness_derived
+thm_deps not_soundness_derived
 end
