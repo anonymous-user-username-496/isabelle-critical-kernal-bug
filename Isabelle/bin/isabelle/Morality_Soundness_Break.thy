@@ -2,7 +2,7 @@ theory Morality_Soundness_Break
   imports Morality_Argument_Audit "HOL-Induct.PropLog"
 begin
 
-theorem not_soundness: "~ soundness"
+theorem not_soundness: "\<not> soundness"
 proof
   assume sound_thm: soundness
 
@@ -12,26 +12,9 @@ proof
   note obligation_expansion = obligation_explicit
   note epistemic_knowledge = knowledge_explicit
 
-  have exhaustive_cases: "c = Known_Should | c = No_Known_Should"
-    for c :: knowledge_case
-    using cases_exhaustive .
-
   have framework_collision: "False"
-  proof (cases "Known_Should :: knowledge_case")
-    case Known_Should
-    have c_case: "Known_Should = Known_Should | Known_Should = No_Known_Should"
-      using exhaustive_cases .
-    thus ?thesis
-      using sound_thm gewirth_deriv obligation_expansion epistemic_knowledge c_case
-      by auto
-  next
-    case No_Known_Should
-    have c_case: "No_Known_Should = Known_Should | No_Known_Should = No_Known_Should"
-      using exhaustive_cases .
-    thus ?thesis
-      using sound_thm gewirth_deriv obligation_expansion epistemic_knowledge c_case
-      by auto
-  qed
+    using sound_thm gewirth_deriv obligation_expansion epistemic_knowledge
+    by metis
 
   show False
     using framework_collision by assumption
