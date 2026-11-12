@@ -1,5 +1,5 @@
 theory Morality_Argument_Audit
-  imports PAL GewirthArgument
+  imports "PAL.PAL" "GewirthPGCProof.GewirthArgument"
 begin
 
 datatype knowledge_case =
