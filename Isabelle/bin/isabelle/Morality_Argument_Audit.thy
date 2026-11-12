@@ -1,69 +1,59 @@
 theory Morality_Argument_Audit
-  imports Main
+  imports PAL GewirthArgument
 begin
-
-text \<open>
-  A should is "known" when we know what we should do.
-  The two cases are whether a should is known or not.
-\<close>
 
 datatype knowledge_case =
     Known_Should
   | No_Known_Should
 
-definition should_known :: "knowledge_case \<Rightarrow> bool" where
-  "should_known c \<longleftrightarrow> c = Known_Should"
+definition should_known ::
+  "\<alpha> \<Rightarrow> \<tau> \<Rightarrow> \<sigma> \<Rightarrow> i \<Rightarrow> bool"
+where
+  "should_known R phi W w \<longleftrightarrow>
+     (\<^bold>K R phi) W w"
 
-definition investigate_purpose :: "knowledge_case \<Rightarrow> bool" where
-  "investigate_purpose c \<longleftrightarrow> c = No_Known_Should"
+definition moral_should ::
+  "e \<Rightarrow> bool"
+where
+  "moral_should a \<longleftrightarrow>
+     \<lfloor>RightTo a FWB\<rfloor>\<^sup>D"
 
-text \<open>
-  A should remains to be found when its status is not known.
-\<close>
+definition investigate_purpose ::
+  "e \<Rightarrow> m \<Rightarrow> bool"
+where
+  "investigate_purpose a E \<longleftrightarrow>
+     \<lfloor>\<^bold>O\<^sub>i(ActsOnPurpose a E)\<rfloor>"
 
-definition should_to_be_found :: "knowledge_case \<Rightarrow> bool" where
-  "should_to_be_found c \<longleftrightarrow> \<not> should_known c"
+definition should_to_be_found ::
+  "e \<Rightarrow> m \<Rightarrow> bool"
+where
+  "should_to_be_found a E \<longleftrightarrow>
+     investigate_purpose a E"
+
+lemma Gewirth_moral_should:
+  "\<lfloor>PPA a \<^bold>\<rightarrow> RightTo a FWB\<rfloor>\<^sup>D"
+  using PGC_strong by blast
+
+lemma RightTo_explicit:
+  "RightTo a FWB =
+   \<^bold>O\<^sub>i(\<^bold>\<forall>b. \<^bold>\<not>InterferesWith b (FWB a))"
+  unfolding RightTo_def
+  by simp
+
+lemma obligation_explicit:
+  "\<^bold>O\<^sub>i phi =
+   (\<lambda>c w.
+      ob (pv w) (phi c) \<and>
+      (\<exists>x. pv w x \<and> \<not>phi c x))"
+  by (rule ext, rule ext, simp)
+
+lemma knowledge_explicit:
+  "(\<^bold>K R phi) W w =
+   (\<forall>v. (W v \<and> R w v) \<longrightarrow> phi W v)"
+  by simp
 
 lemma cases_exhaustive:
   "c = Known_Should \<or> c = No_Known_Should"
   by (cases c) simp_all
 
-lemma no_known_should_means_investigate:
-  assumes "\<not> should_known c"
-  shows "investigate_purpose c"
-  using assms
-  unfolding should_known_def investigate_purpose_def
-  by (cases c) simp_all
-
-lemma investigate_when_should_unknown:
-  assumes "c = No_Known_Should"
-  shows "investigate_purpose c"
-  using assms
-  unfolding investigate_purpose_def
-  by simp
-
-lemma should_to_be_found_iff_investigate:
-  "should_to_be_found c \<longleftrightarrow> investigate_purpose c"
-  unfolding should_to_be_found_def
-    should_known_def investigate_purpose_def
-  by (cases c) simp_all
-
-
-theorem should_status_exhaustive:
-  "\<forall>c. should_known c \<or> should_to_be_found c"
-proof
-  fix c
-  show "should_known c \<or> should_to_be_found c"
-  proof (cases c)
-    case Known_Should
-    then show ?thesis
-      unfolding should_known_def
-      by simp
-  next
-    case No_Known_Should
-    then show ?thesis
-      unfolding should_known_def should_to_be_found_def
-      by simp
-  qed
-qed
 end
