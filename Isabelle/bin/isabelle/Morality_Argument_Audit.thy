@@ -15,28 +15,28 @@ where
 definition moral_should ::
   "e \<Rightarrow> bool"
 where
-  "moral_should a \<longleftrightarrow>
-     \<lfloor>RightTo a FWB\<rfloor>\<^sup>D"
+  "moral_should (x::e) \<longleftrightarrow>
+     \<lfloor>RightTo x FWB\<rfloor>\<^sup>D"
 
 definition investigate_purpose ::
   "e \<Rightarrow> m \<Rightarrow> bool"
 where
-  "investigate_purpose a E \<longleftrightarrow>
-     \<lfloor>\<^bold>O\<^sub>i(ActsOnPurpose a E)\<rfloor>"
+  "investigate_purpose (x::e) (E::m) \<longleftrightarrow>
+     \<lfloor>\<^bold>O\<^sub>i(ActsOnPurpose x E)\<rfloor>"
 
 definition should_to_be_found ::
   "e \<Rightarrow> m \<Rightarrow> bool"
 where
-  "should_to_be_found a E \<longleftrightarrow>
-     investigate_purpose a E"
+  "should_to_be_found (x::e) (E::m) \<longleftrightarrow>
+     investigate_purpose x E"
 
 lemma Gewirth_moral_should:
-  "\<lfloor>PPA a \<^bold>\<rightarrow> RightTo a FWB\<rfloor>\<^sup>D"
+  "\<lfloor>PPA (x::e) \<^bold>\<rightarrow> RightTo x FWB\<rfloor>\<^sup>D"
   using PGC_strong by blast
 
 lemma RightTo_explicit:
-  "RightTo a FWB =
-   \<^bold>O\<^sub>i(\<^bold>\<forall>b. \<^bold>\<not>InterferesWith b (FWB a))"
+  "RightTo (x::e) FWB =
+   \<^bold>O\<^sub>i(\<^bold>\<forall>b. \<^bold>\<not>InterferesWith b (FWB x))"
   unfolding RightTo_def
   by simp
 
@@ -48,7 +48,7 @@ lemma obligation_explicit:
   by (rule ext, rule ext, simp)
 
 lemma knowledge_explicit:
-  "(\<^bold>K R phi) W w =
+  "(\<bold>K R phi) W w =
    (\<forall>v. (W v \<and> R w v) \<longrightarrow> phi W v)"
   by simp
 
