@@ -34,6 +34,18 @@ lemma Gewirth_moral_should:
   "\<lfloor>PPA (x::e) \<^bold>\<rightarrow> RightTo x FWB\<rfloor>\<^sup>D"
   using PGC_strong by blast
 
+lemma obligation_explicit:
+  "\<^bold>O\<^sub>i phi =
+   (\<lambda>c w.
+      ob (pv w) (phi c) &
+      (EX y. pv w y & ~phi c y))"
+  by (rule ext, rule ext, simp)
+
+lemma knowledge_explicit:
+  "(\<bold>K R phi) W w =
+   (ALL v. (W v & R w v) --> phi W v)"
+  by simp
+
 lemma cases_exhaustive:
   "c = Known_Should | c = No_Known_Should"
   for c :: knowledge_case
