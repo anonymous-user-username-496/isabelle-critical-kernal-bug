@@ -41,7 +41,7 @@ lemma RightTo_explicit:
   by simp
 
 lemma obligation_explicit:
-  "\<^bold>O\<^sub>i phi =
+  "\<lfloor>\<^bold>O\<^sub>i phi\<rfloor> =
    (\<lambda>c w.
       ob (pv w) (phi c) \<and>
       (\<exists>x. pv w x \<and> \<not>phi c x))"
