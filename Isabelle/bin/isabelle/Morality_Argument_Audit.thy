@@ -7,27 +7,27 @@ datatype knowledge_case =
   | No_Known_Should
 
 definition should_known ::
-  "\<alpha> => \<tau> => \<sigma> => i => bool"
+  "\<alpha> \<Rightarrow> \<tau> \<Rightarrow> \<sigma> \<Rightarrow> i \<Rightarrow> bool"
 where
-  "should_known R phi W w <->
+  "should_known R phi W w \<longleftrightarrow>
      (\<^bold>K R phi) W w"
 
 definition moral_should ::
-  "e => bool"
+  "e \<Rightarrow> bool"
 where
-  "moral_should (x::e) <->
+  "moral_should (x::e) \<longleftrightarrow>
      \<lfloor>RightTo x FWB\<rfloor>\<^sup>D"
 
 definition investigate_purpose ::
-  "e => m => bool"
+  "e \<Rightarrow> m \<Rightarrow> bool"
 where
-  "investigate_purpose (x::e) (E::m) <->
+  "investigate_purpose (x::e) (E::m) \<longleftrightarrow>
      \<lfloor>\<^bold>O\<^sub>i(ActsOnPurpose x E)\<rfloor>"
 
 definition should_to_be_found ::
-  "e => m => bool"
+  "e \<Rightarrow> m \<Rightarrow> bool"
 where
-  "should_to_be_found (x::e) (E::m) <->
+  "should_to_be_found (x::e) (E::m) \<longleftrightarrow>
      investigate_purpose x E"
 
 lemma Gewirth_moral_should:
@@ -36,18 +36,18 @@ lemma Gewirth_moral_should:
 
 lemma obligation_explicit:
   "\<^bold>O\<^sub>i phi =
-   (%c w.
-      ob (pv w) (phi c) &
-      (EX y. pv w y & ~phi c y))"
+   (\<lambda>c w.
+      ob (pv w) (phi c) \<and>
+      (\<exists>y. pv w y \<and> \<not>phi c y))"
   by (rule ext, rule ext, simp)
 
 lemma knowledge_explicit:
-  "(\<bold>K R phi) W w =
-   (ALL v. (W v & R w v) --> phi W v)"
+  "(\<^bold>K R phi) W w =
+   (\<forall>v. (W v \<and> R w v) \<longrightarrow> phi W v)"
   by simp
 
 lemma cases_exhaustive:
-  "c = Known_Should | c = No_Known_Should"
+  "c = Known_Should \<or> c = No_Known_Should"
   for c :: knowledge_case
   by (cases c) simp_all
 
