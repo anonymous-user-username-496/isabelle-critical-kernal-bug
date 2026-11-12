@@ -1,5 +1,7 @@
-session Argument_Audit = "PAL" +
+session Argument_Audit = "HOL" +
+  sessions
+    PAL
+    GewirthPGCProof
   theories
-    GewirthArgument
     Morality_Argument_Audit
     Morality_Soundness_Break
