@@ -9,7 +9,7 @@ proof
   have gewirth_deriv: "\<lfloor>PPA (x::e) \<^bold>\<rightarrow> RightTo x FWB\<rfloor>\<^sup>D"
     using Gewirth_moral_should .
 
-  have right_expansion: "RightTo (x::e) FWB = \<^bold>O\<^sub>i(\<^bold>\<forall>b. \<^bold>\<not>InterferesWith b (FWB x))"
+  have right_expansion: "RightTo (x::e) FWB = \<^bold>O\<^sub>i(\<forall>b. \<^bold>\<not>InterferesWith b (FWB x))"
     using RightTo_explicit .
 
   have obligation_expansion: "\<^bold>O\<^sub>i phi = (\<lambda>c w. ob (pv w) (phi c) \<and> (\<exists>y. pv w y \<and> \<not>phi c y))"
@@ -29,5 +29,5 @@ proof
   show False
     using framework_collision by assumption
 qed
-thm_deps not_soundness
+
 end
