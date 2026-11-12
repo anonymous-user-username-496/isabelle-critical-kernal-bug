@@ -9,7 +9,6 @@ proof
   have gewirth_deriv: "\<lfloor>PPA (x::e) \<^bold>\<rightarrow> RightTo (x::e) FWB\<rfloor>\<^sup>D"
     using Gewirth_moral_should .
 
-  -- {* Alias the lemmas directly without re-parsing string literals containing \<^bold>K *}
   note obligation_expansion = obligation_explicit
   note epistemic_knowledge = knowledge_explicit
 
