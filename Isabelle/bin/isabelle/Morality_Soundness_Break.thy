@@ -29,5 +29,5 @@ proof
   show False
     using framework_collision by assumption
 qed
-
+thm_deps not_soundness
 end
