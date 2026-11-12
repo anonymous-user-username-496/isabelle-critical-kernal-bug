@@ -44,7 +44,7 @@ lemma obligation_explicit:
   "\<^bold>O\<^sub>i phi =
    (\<lambda>c w.
       ob (pv w) (phi c) &
-      (EX x. pv w x & ~phi c x))"
+      (EX y. pv w y & ~phi c y))"
   by (rule ext, rule ext, simp)
 
 lemma knowledge_explicit:
@@ -54,6 +54,7 @@ lemma knowledge_explicit:
 
 lemma cases_exhaustive:
   "c = Known_Should | c = No_Known_Should"
+  for c :: knowledge_case
   by (cases c) simp_all
 
 end
