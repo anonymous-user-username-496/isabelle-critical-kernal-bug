@@ -36,24 +36,24 @@ lemma Gewirth_moral_should:
 
 lemma RightTo_explicit:
   "RightTo (x::e) FWB =
-   \<^bold>O\<^sub>i(\<^bold>\<forall>b. \<^bold>\<not>InterferesWith b (FWB x))"
+   \<^bold>O\<^sub>i(ALL b. ~InterferesWith b (FWB x))"
   unfolding RightTo_def
   by simp
 
 lemma obligation_explicit:
   "\<^bold>O\<^sub>i phi =
    (\<lambda>c w.
-      ob (pv w) (phi c) \<and>
-      (\<exists>x. pv w x \<and> \<not>phi c x))"
+      ob (pv w) (phi c) &
+      (EX x. pv w x & ~phi c x))"
   by (rule ext, rule ext, simp)
 
 lemma knowledge_explicit:
   "(\<bold>K R phi) W w =
-   (\<forall>v. (W v \<and> R w v) \<longrightarrow> phi W v)"
+   (ALL v. (W v & R w v) --> phi W v)"
   by simp
 
 lemma cases_exhaustive:
-  "c = Known_Should \<or> c = No_Known_Should"
+  "c = Known_Should | c = No_Known_Should"
   by (cases c) simp_all
 
 end
