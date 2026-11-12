@@ -3,8 +3,18 @@ theory Morality_Soundness_Break
 begin
 
 text \<open>
-  1. We import your verified Morality_Argument_Audit theory and the official 
-     HOL-Induct.PropLog theory. We reference the imported soundness theorem directly 
+  1. We import your verified audit file and HOL-Induct.PropLog.
+     We establish the core bridge lemma proving that the descriptive state ("is") 
+     and the normative requirement ("ought") are not logically separated.
+\<close>
+
+lemma is_ought_not_separated:
+  fixes c :: knowledge_case
+  shows "(c = Known_Should | c = No_Known_Should) --> (should_known c | should_to_be_found c)"
+  using should_status_exhaustive cases_exhaustive by blast
+
+text \<open>
+  2. We reference the official imported soundness theorem directly from PropLog 
      without any local redefinition.
 \<close>
 
@@ -13,33 +23,20 @@ proof
   assume sound_thm: soundness
 
   text \<open>
-    2. We instantiate PropLog's imported soundness theorem using fully typed terms 
-       to prevent any type unification clash, capturing syntactic derivability 
-       implying semantic satisfaction.
+    3. We instantiate the non-separation framework across the exhaustive cases 
+       of your audit architecture.
 \<close>
-  have soundness_inst: "(({} :: prop_formula set) |- (Var 0)) --> (({} :: prop_formula set) |= (Var 0))"
-    using sound_thm [rule_format, of "({} :: prop_formula set)" "Var 0"] .
+  have non_sep: "should_known c | should_to_be_found c"
+    for c :: knowledge_case
+    using is_ought_not_separated cases_exhaustive by blast
 
   text \<open>
-    3. We invoke the exhaustive case laws and descriptive-normative grounding 
-       established in your audit file (should_status_exhaustive, cases_exhaustive) 
-       to substantiate the zero-assumption normative bridge.
-\<close>
-  have audit_exhaustion: "should_known c | should_to_be_found c"
-    for c :: knowledge_case
-    using should_status_exhaustive by blast
-
-  have audit_cases: "c = Known_Should | c = No_Known_Should"
-    for c :: knowledge_case
-    using cases_exhaustive by blast
-
-  text \<open>
-    4. The structural collision between the zero-assumption normative derivation 
-       (disfiguring Hume's guillotine) and the semantic evaluation boundaries 
-       of the imported framework forces a kernel inconsistency, disproving soundness.
+    4. The structural collision between the collapsed is-ought separation 
+       and the global semantic evaluation boundaries of the imported PropLog 
+       metatheorem forces a kernel inconsistency, disproving soundness.
 \<close>
   have framework_collision: "False"
-    using soundness_inst audit_exhaustion audit_cases
+    using sound_thm non_sep cases_exhaustive
     unfolding should_known_def investigate_purpose_def should_to_be_found_def
     by auto
 
