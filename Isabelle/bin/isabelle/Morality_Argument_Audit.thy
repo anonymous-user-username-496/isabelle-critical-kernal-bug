@@ -36,7 +36,7 @@ lemma Gewirth_moral_should:
 
 lemma RightTo_explicit:
   "RightTo (x::e) FWB =
-   \<^bold>O\<^sub>i(\<forall>b. \<^bold>\<not>InterferesWith b (FWB x))"
+   \<^bold>O\<^sub>i(\<^bold>\<forall>b. \<^bold>\<not>InterferesWith b (FWB x))"
   unfolding RightTo_def
   by simp
 
