@@ -48,22 +48,38 @@ jobs:
             tar -xzf .ci-deps/isabelle.tar.gz -C .ci-deps
             rm .ci-deps/isabelle.tar.gz
           fi
-      - name: Download only the required AFP entry
+      - name: Download required AFP entries
         shell: bash
         run: |
           set -euo pipefail
           cd .ci-deps
-          if [ ! -d CondNormReasHOL ]; then
+          
+          # Download and extract PAL
+          if [ ! -d PAL ]; then
             curl -fL --retry 3 --connect-timeout 30 \
-              "https://isa-afp.org/release/afp-CondNormReasHOL-${AFP_DATE}.tar.gz" \
-              -o condnormreas-hol.tar.gz
-            mkdir -p afp-extract
-            tar -xzf condnormreas-hol.tar.gz -C afp-extract
-            root_file="$(find afp-extract -type f -name ROOT -print -quit)"
+              "https://isa-afp.org/release/afp-PAL-${AFP_DATE}.tar.gz" \
+              -o pal.tar.gz
+            mkdir -p afp-extract-pal
+            tar -xzf pal.tar.gz -C afp-extract-pal
+            root_file="$(find afp-extract-pal -type f -name ROOT -print -quit)"
             test -n "$root_file"
-            mv "$(dirname "$root_file")" CondNormReasHOL
-            rm -rf afp-extract condnormreas-hol.tar.gz
+            mv "$(dirname "$root_file")" PAL
+            rm -rf afp-extract-pal pal.tar.gz
           fi
+
+          # Download and extract GewirthPGCProof (which provides GewirthArgument)
+          if [ ! -d GewirthPGCProof ]; then
+            curl -fL --retry 3 --connect-timeout 30 \
+              "https://isa-afp.org/release/afp-GewirthPGCProof-${AFP_DATE}.tar.gz" \
+              -o gewirth.tar.gz
+            mkdir -p afp-extract-gewirth
+            tar -xzf gewirth.tar.gz -C afp-extract-gewirth
+            root_file="$(find afp-extract-gewirth -type f -name ROOT -print -quit)"
+            test -n "$root_file"
+            mv "$(dirname "$root_file")" GewirthPGCProof
+            rm -rf afp-extract-gewirth gewirth.tar.gz
+          fi
+
       - name: Check ROOT and theory names
         shell: bash
         run: |
@@ -93,9 +109,10 @@ jobs:
           set -euo pipefail
           ISABELLE="$GITHUB_WORKSPACE/.ci-deps/Isabelle${ISABELLE_VERSION}/bin/isabelle"
           "$ISABELLE" build -c -v -j 2 -o threads=2 \
-            -d "$GITHUB_WORKSPACE/.ci-deps/CondNormReasHOL" \
+            -d "$GITHUB_WORKSPACE/.ci-deps/PAL" \
+            -d "$GITHUB_WORKSPACE/.ci-deps/GewirthPGCProof" \
             -d "$GITHUB_WORKSPACE/Isabelle/bin/isabelle" \
-            Argument_Audit 2>&1 | tee "$RUNNER_TEMP/isabelle-build.log"
+            Argument_Audit 2>&1 | tee "$RUNNER_TEMP/isabelle-build.log"     
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
