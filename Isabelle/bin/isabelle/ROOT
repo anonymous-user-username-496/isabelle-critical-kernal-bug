@@ -1,6 +1,7 @@
 session Argument_Audit = "HOL-Induct" + options [document = false]
   sessions
-    CondNormReasHOL
+    PAL 
+    GewirthArgument
   theories
     Morality_Soundness_Break
     Morality_Argument_Audit
