@@ -13,25 +13,24 @@ proof
     for c :: knowledge_case
     using cases_exhaustive .
 
-  (* Explicitly instantiate soundness with a mapped form term *)
-  have mapped_sound: "({} :: form set) \<turnstile> (Var 0) \<longrightarrow> ({} :: form set) \<models> (Var 0)"
-    using sound_thm [of "{}" "Var 0"] .
-
   have framework_collision: "False"
   proof (cases "Known_Should :: knowledge_case")
     case Known_Should
     have c_case: "Known_Should = Known_Should \<or> Known_Should = No_Known_Should"
       using exhaustive_cases .
+    (* Use sound_thm directly without manual token parsing of internal symbols *)
+    have s_use: "soundness" using sound_thm .
     thus ?thesis
-      using gewirth_deriv c_case mapped_sound
-      by auto
+      using gewirth_deriv c_case s_use
+      by blast
   next
     case No_Known_Should
     have c_case: "No_Known_Should = Known_Should \<or> No_Known_Should = No_Known_Should"
       using exhaustive_cases .
+    have s_use: "soundness" using sound_thm .
     thus ?thesis
-      using gewirth_deriv c_case mapped_sound
-      by auto
+      using gewirth_deriv c_case s_use
+      by blast
   qed
 
   show False
