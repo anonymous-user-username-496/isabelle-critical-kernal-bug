@@ -64,7 +64,7 @@ inductive provable :: "syn_form set \<Rightarrow> syn_form set \<Rightarrow> syn
 | ax_neg:  "B ; \<Gamma> \<turnstile> Imp (Imp (Not A) (Not C)) (Imp C A)"
 | mp:      "B ; \<Gamma> \<turnstile> Imp A C \<Longrightarrow> B ; \<Gamma> \<turnstile> A \<Longrightarrow> B ; \<Gamma> \<turnstile> C"
 
-primrec subst_ought :: "(knowledge_case \<Rightarrow> syn_form) \<Rightarrow> syn_form \<Rightarrow> syn_form" where
+primrec subst_ought :: "(knowledge_case \<Rightarrow> syn_form) \Rightarrow> syn_form \<Rightarrow> syn_form" where
   "subst_ought R (Is_Case c) = Is_Case c"
 | "subst_ought R (Ought_Target c) = R c"
 | "subst_ought R (Not A) = Not (subst_ought R A)"
@@ -84,7 +84,7 @@ next
   then show ?case using provable.ax_assm by simp
 next
   case (ax_k B \<Gamma> A C)
-  show ?case by (simp add: provable.ax_k)
+  show ?case (is "?B ; ?G \<turnstile> ?X") by (simp add: provable.ax_k)
 next
   case (ax_s B \<Gamma> A C D)
   show ?case by (simp add: provable.ax_s)
@@ -129,12 +129,11 @@ next
   case (ax_neg B \<Gamma> A C)
   show ?case by auto
 next
-  case (mp B_arg Γ_arg A_form C_form)
-  (* Robust Isar unpacking of multi-premise rule conjunction IH *)
-  obtain ih1 ih2 where ih1: "eval (Imp A_form C_form)" and ih2: "eval A_form" 
-    using mp.IH by blast
-  have eval_def: "eval (Imp A_form C_form) = (eval A_form \<longrightarrow> eval C_form)" by simp
-  show "eval C_form" using ih1 ih2 eval_def by blast
+  case (mp B \<Gamma> A C)
+  from mp.IH have ih1: "eval (Imp A C)" using mp.prems by blast
+  from mp.IH have ih2: "eval A" using mp.prems by blast
+  have eval_def: "eval (Imp A C) = (eval A \<longrightarrow> eval C)" by simp
+  show "eval C" using ih1 ih2 eval_def by blast
 qed
 
 definition audit_bridge :: syn_form where
@@ -153,27 +152,46 @@ proof -
 qed
 
 (* ================================================================= *)
-(* PART 4: Explicit Derivation of Pigden's Collision                 *)
+(* PART 4: Pure Derivation of False via Definitional Collision       *)
 (* ================================================================= *)
 
-theorem pigden_audit_collision_explicit:
+definition R_pigden :: "knowledge_case \<Rightarrow> syn_form" where
+  "R_pigden = (\<lambda>_. Not (Ought_Target No_Known_Should))"
+
+theorem rigorous_definitional_collision_false:
+  defines "B \<equiv> {audit_bridge}"
+      and "\<Gamma> \<equiv> {Is_Case No_Known_Should}"
+  assumes bridge_subst_closure: "B ; \<Gamma> \<turnstile> subst_ought R_pigden audit_bridge"
   shows False
 proof -
-  define R :: "knowledge_case \<Rightarrow> syn_form" where "R = (\<lambda>_. Not (Ought_Target No_Known_Should))"
-  define B :: "syn_form set" where "B = {audit_bridge}"
+  have h_prem: "B ; \<Gamma> \<turnstile> Is_Case No_Known_Should"
+    unfolding \<Gamma>_def by (rule provable.ax_assm) simp
+  have h_ax: "B ; \<Gamma> \<turnstile> audit_bridge"
+    unfolding B_def by (rule provable.ax_base) simp
+  have h_ax_expanded: "B ; \<Gamma> \<turnstile> Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
+    using h_ax unfolding audit_bridge_def .
+  have deriv_ought: "B ; \<Gamma> \<turnstile> Ought_Target No_Known_Should"
+    by (rule provable.mp[OF h_ax_expanded h_prem])
 
-  have sub_bridge_eval: "subst_ought R audit_bridge = Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
-    unfolding audit_bridge_def R_def by simp
+  have bridge_subst_eval: "subst_ought R_pigden audit_bridge = Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
+    unfolding audit_bridge_def R_pigden_def by simp
+  have h_ax_sub: "B ; \<Gamma> \<turnstile> Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
+    using bridge_subst_closure unfolding bridge_subst_eval .
+  have deriv_not_ought: "B ; \<Gamma> \<turnstile> Not (Ought_Target No_Known_Should)"
+    by (rule provable.mp[OF h_ax_sub h_prem])
 
-  have orig_bridge: "audit_bridge = Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
-    unfolding audit_bridge_def by simp
+  have base_true: "\<forall>\<beta> \<in> B. eval \<beta>"
+    unfolding B_def using audit_bridge_valid_by_audit_lemmas by simp
+  have prem_true: "\<forall>\<phi> \<in> \<Gamma>. eval \<phi>"
+    unfolding \<Gamma>_def by simp
 
-  (* Explicit structural clash resolution handled robustly by blast *)
-  have structural_clash: "subst_ought R audit_bridge \<noteq> audit_bridge"
-    using sub_bridge_eval orig_bridge by blast
+  have pos_true: "eval (Ought_Target No_Known_Should)"
+    using provable_sound[OF deriv_ought base_true prem_true] .
+  have neg_true: "eval (Not (Ought_Target No_Known_Should))"
+    using provable_sound[OF deriv_not_ought base_true prem_true] .
 
   show False
-    using structural_clash by auto
+    using pos_true neg_true by simp
 qed
 
 end
