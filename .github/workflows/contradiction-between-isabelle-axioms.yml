@@ -48,7 +48,8 @@ jobs:
             tar -xzf .ci-deps/isabelle.tar.gz -C .ci-deps
             rm .ci-deps/isabelle.tar.gz
           fi
-     - name: Build only the requested session using available heaps
+     
+      - name: Build only the requested session using available heaps
        shell: bash
        run: |
         set -euo pipefail
@@ -82,4 +83,6 @@ jobs:
           gh attestation verify \
             "$RUNNER_TEMP/isabelle-build.log" \
             --repo "$GITHUB_REPOSITORY"
+
           
+        
