@@ -21,15 +21,13 @@ proof (rule notI)
     have modal_grounding: "\<lfloor>PPA x \<^bold>\<rightarrow> RightTo x FWB\<rfloor>\<^sup>D"
       using gewirth_deriv .
 
-    -- "Explicit forward witness derivation instead of blind automated search"
     have collision_1: "False"
     proof -
       have h1: "Known_Should = Known_Should" by simp
       have h2: "soundness" using sound_hyp .
-      -- "Direct structural contradiction via explicit case instantiation"
       show ?thesis
         using h1 h2 modal_grounding c_eval
-        by cases simp_all
+        by auto
     qed
 
     show ?thesis using collision_1 .
@@ -49,7 +47,7 @@ proof (rule notI)
       have h2: "soundness" using sound_hyp .
       show ?thesis
         using h1 h2 modal_grounding c_eval
-        by cases simp_all
+        by auto
     qed
 
     show ?thesis using collision_2 .
@@ -57,7 +55,7 @@ proof (rule notI)
 
   show False
     using exhaustive_cases [of Known_Should] case_known_should case_no_known_should
-    by blast
+    by auto
 qed
 
 thm_deps not_soundness
