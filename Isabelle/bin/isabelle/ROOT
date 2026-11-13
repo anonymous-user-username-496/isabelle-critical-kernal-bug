@@ -1,7 +1,3 @@
-session Argument_Audit = "HOL" +
-  sessions
-    PAL
-    GewirthPGCProof
+session Argument_Audit = "Main" +
   theories
-    Morality_Argument_Audit
-    Morality_Audit_Pigden_Final_Verified
+    Morality_Argument_Audit_Strict_Verified
