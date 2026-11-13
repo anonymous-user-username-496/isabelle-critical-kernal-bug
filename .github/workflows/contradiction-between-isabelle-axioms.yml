@@ -89,7 +89,7 @@ jobs:
           from pathlib import Path
           import re, sys
           root = Path('Isabelle/bin/isabelle/ROOT').read_text()
-          for filename in ('Morality_Soundness_Break.thy', 'Morality_Argument_Audit.thy'):
+          for filename in ('Morality_Audit_Pigden_Final_Verified.thy', 'Morality_Argument_Audit.thy'):
               p = Path('Isabelle/bin/isabelle') / filename
               if not p.exists():
                   print(f'Missing theory file: {p}', file=sys.stderr)
