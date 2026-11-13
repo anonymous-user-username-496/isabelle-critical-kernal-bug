@@ -3,7 +3,7 @@ theory Morality_Argument_Audit_Strict_Verified
 begin
 
 (* ========================================================================= *)
-/* PART 1: YOUR EXACT ORIGINAL MORALITY ARGUMENT AUDIT CODE                  *)
+(* PART 1: YOUR EXACT ORIGINAL MORALITY ARGUMENT AUDIT CODE                  *)
 (* ========================================================================= *)
 
 text \<open>
