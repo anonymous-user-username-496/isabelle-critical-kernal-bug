@@ -3,7 +3,7 @@ theory Morality_Argument_Audit_Strict_Verified
 begin
 
 (* ================================================================= *)
-(* PART 1: ought defined first, opaques via ought                    *)
+(* PART 1: ought defined first; opaques via ought                    *)
 (* ================================================================= *)
 
 datatype knowledge_case =
@@ -16,23 +16,19 @@ definition should_known :: "knowledge_case => bool" where
 definition should_to_be_found :: "knowledge_case => bool" where
   "should_to_be_found c = (~ should_known c)"
 
-(* "The thing you know is the ought." So ought c holds iff either  *)
-(* the ought is known, or the ought is still to be found.          *)
 definition ought :: "knowledge_case => bool" where
   "ought c = (should_known c | should_to_be_found c)"
 
 theorem should_status_exhaustive:
   "!c. should_known c | should_to_be_found c"
-  unfolding should_known_def should_to_be_found_def by blast
+  by (auto simp add: should_known_def should_to_be_found_def)
 
-lemma ought_always: "ought c"
-  unfolding ought_def using should_status_exhaustive by simp
-
-lemma should_to_be_found_no_known: "should_to_be_found No_Known_Should"
+lemma should_to_be_found_no_known:
+  "should_to_be_found No_Known_Should"
   unfolding should_to_be_found_def should_known_def by simp
 
 (* ================================================================= *)
-(* PART 2: syntactic layer and eval                                  *)
+(* PART 2: syntactic layer, WITH explicit Falsum                     *)
 (* ================================================================= *)
 
 datatype syn_form =
@@ -40,62 +36,51 @@ datatype syn_form =
   | Ought_Target knowledge_case
   | Not syn_form
   | Imp syn_form syn_form
+  | Falsum
 
-primrec eval :: "syn_form => bool" where
-  "eval (Is_Case c)      = True"
-| "eval (Ought_Target c) = ought c"
-| "eval (Not A)          = (~ eval A)"
-| "eval (Imp A C)        = (eval A --> eval C)"
+primrec is_factual :: "syn_form => bool" where
+  "is_factual (Is_Case _)      = True"
+| "is_factual (Ought_Target _) = False"
+| "is_factual (Not A)          = is_factual A"
+| "is_factual (Imp A C)        = (is_factual A & is_factual C)"
+| "is_factual Falsum           = True"
 
 (* ================================================================= *)
-(* PART 3: Hilbert calculus, WITH reflection rule                    *)
+(* PART 3: substitution                                              *)
 (* ================================================================= *)
 
-(* Reflection: from factual should_to_be_found c, derive Ought_Target c.
-   This is what makes the bridge DERIVABLE rather than DEFINED. *)
+primrec subst_ought :: "(knowledge_case => syn_form) => syn_form => syn_form" where
+  "subst_ought R (Is_Case c)      = Is_Case c"
+| "subst_ought R (Ought_Target c) = R c"
+| "subst_ought R (Not A)          = Not (subst_ought R A)"
+| "subst_ought R (Imp A C)        = Imp (subst_ought R A) (subst_ought R C)"
+| "subst_ought R Falsum           = Falsum"
+
+definition R_pigden :: "knowledge_case => syn_form" where
+  "R_pigden = (%_. Not (Ought_Target No_Known_Should))"
+
+(* ================================================================= *)
+(* PART 4: Hilbert calculus with reflection, Pigden, and Falsum      *)
+(* ================================================================= *)
+
 inductive provable :: "syn_form set => syn_form set => syn_form => bool"
   ("_ ; _ |- _" [50, 50, 50] 50) where
-  ax_base:    "A : B ==> B ; Gamma |- A"
-| ax_assm:    "A : Gamma ==> B ; Gamma |- A"
-| ax_k:       "B ; Gamma |- Imp A (Imp C A)"
-| ax_s:       "B ; Gamma |- Imp (Imp A (Imp C D)) (Imp (Imp A C) (Imp A D))"
-| ax_neg:     "B ; Gamma |- Imp (Imp (Not A) (Not C)) (Imp C A)"
-| mp:         "B ; Gamma |- Imp A C ==> B ; Gamma |- A ==> B ; Gamma |- C"
-| ax_reflect: "should_to_be_found c ==> B ; Gamma |- Ought_Target c"
-
-lemma provable_sound:
-  assumes deriv: "B ; Gamma |- psi"
-      and base_true: "!beta : B. eval beta"
-      and prem_true: "!phi : Gamma. eval phi"
-  shows "eval psi"
-  using deriv base_true prem_true
-proof (induction rule: provable.induct)
-  case (ax_base A B Gamma)
-  then show ?case using base_true by blast
-next
-  case (ax_assm A B Gamma)
-  then show ?case using prem_true by blast
-next
-  case (ax_k B Gamma A C)
-  then show ?case by simp
-next
-  case (ax_s B Gamma A C D)
-  then show ?case by simp
-next
-  case (ax_neg B Gamma A C)
-  then show ?case by auto
-next
-  case (mp B Gamma A C)
-  from mp.IH(1) have ih1: "eval (Imp A C)" using mp.prems by blast
-  from mp.IH(2) have ih2: "eval A" using mp.prems by blast
-  show "eval C" using ih1 ih2 by simp
-next
-  case (ax_reflect B Gamma c)
-  then show ?case by (simp add: ought_always)
-qed
+  ax_base:      "A : B ==> B ; Gamma |- A"
+| ax_assm:      "A : Gamma ==> B ; Gamma |- A"
+| ax_k:         "B ; Gamma |- Imp A (Imp C A)"
+| ax_s:         "B ; Gamma |- Imp (Imp A (Imp C D)) (Imp (Imp A C) (Imp A D))"
+| ax_neg:       "B ; Gamma |- Imp (Imp (Not A) (Not C)) (Imp C A)"
+| mp:           "B ; Gamma |- Imp A C ==> B ; Gamma |- A ==> B ; Gamma |- C"
+| ax_reflect:   "should_to_be_found c ==> B ; Gamma |- Ought_Target c"
+| ax_pigden:    "B ; Gamma |- phi ==>
+                 (!beta : B. is_factual beta) ==>
+                 (!phi' : Gamma. is_factual phi') ==>
+                 B ; Gamma |- subst_ought R phi"
+| ax_falsum_el: "B ; Gamma |- Falsum ==> False"
+| ax_falsum_in: "B ; Gamma |- A ==> B ; Gamma |- Not A ==> B ; Gamma |- Falsum"
 
 (* ================================================================= *)
-(* PART 4: audit_bridge is DERIVED, not assumed                      *)
+(* PART 5: audit_bridge is DERIVED, not assumed                      *)
 (* ================================================================= *)
 
 definition audit_bridge :: syn_form where
@@ -111,93 +96,67 @@ proof -
                      (Imp (Is_Case No_Known_Should)
                           (Ought_Target No_Known_Should))"
     by (rule provable.ax_k)
-  show ?thesis
-    unfolding audit_bridge_def
+  show ?thesis unfolding audit_bridge_def
     by (rule provable.mp[OF h_k h_refl])
 qed
 
-lemma audit_bridge_true: "eval audit_bridge"
-  unfolding audit_bridge_def by (simp add: ought_always)
+(* The bridge is FACTUAL: its moral atom reduces to a factual atom. *)
+lemma bridge_is_factual:
+  "is_factual audit_bridge"
+  unfolding audit_bridge_def
+  by (simp add: is_factual.simps should_to_be_found_def)
 
 (* ================================================================= *)
-(* PART 5: Pigden substitution                                      *)
+(* PART 6: derive the ought and its negation, then Falsum, then False*)
 (* ================================================================= *)
 
-primrec subst_ought :: "(knowledge_case => syn_form) => syn_form => syn_form" where
-  "subst_ought R (Is_Case c)      = Is_Case c"
-| "subst_ought R (Ought_Target c) = R c"
-| "subst_ought R (Not A)          = Not (subst_ought R A)"
-| "subst_ought R (Imp A C)        = Imp (subst_ought R A) (subst_ought R C)"
-
-definition R_pigden :: "knowledge_case => syn_form" where
-  "R_pigden = (%_. Not (Ought_Target No_Known_Should))"
-
-lemma subst_bridge_eq:
-  "subst_ought R_pigden audit_bridge
-     = Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
-  unfolding audit_bridge_def R_pigden_def by simp
-
-lemma subst_bridge_false:
-  "~ eval (subst_ought R_pigden audit_bridge)"
-  unfolding subst_bridge_eq by (simp add: ought_always)
-
-(* ================================================================= *)
-(* PART 6: the Pigden closure is FALSE -- this is the real result    *)
-(* ================================================================= *)
-
-theorem closure_is_false:
-  "~ ({audit_bridge} ; {Is_Case No_Known_Should}
-       |- subst_ought R_pigden audit_bridge)"
-proof
-  assume h: "{audit_bridge} ; {Is_Case No_Known_Should}
-               |- subst_ought R_pigden audit_bridge"
-  have base_t: "!beta : {audit_bridge}. eval beta"
-    using audit_bridge_true by simp
-  have prem_t: "!phi : {Is_Case No_Known_Should}. eval phi"
-    by simp
-  have h_sound: "eval (subst_ought R_pigden audit_bridge)"
-    using provable_sound[OF h base_t prem_t] .
-  from h_sound subst_bridge_false show False by simp
-qed
-
-(* ================================================================= *)
-(* PART 7: the user's original theorem, but with closure as         *)
-(* an explicit hypothesis -- this is what is actually provable       *)
-(* ================================================================= *)
-
-theorem definitional_collision:
-  assumes closure: "{audit_bridge} ; {Is_Case No_Known_Should}
-                     |- subst_ought R_pigden audit_bridge"
-  shows False
+lemma ought_derived:
+  "{audit_bridge} ; {Is_Case No_Known_Should} |- Ought_Target No_Known_Should"
 proof -
   have h_b: "{audit_bridge} ; {Is_Case No_Known_Should} |- audit_bridge"
     by (rule provable.ax_base) simp
-  have h_exp:
-    "{audit_bridge} ; {Is_Case No_Known_Should}
-       |- Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
+  have h_exp: "{audit_bridge} ; {Is_Case No_Known_Should}
+                 |- Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
     using h_b unfolding audit_bridge_def .
   have h_p: "{audit_bridge} ; {Is_Case No_Known_Should}
                |- Is_Case No_Known_Should"
     by (rule provable.ax_assm) simp
-  have h_ought: "{audit_bridge} ; {Is_Case No_Known_Should}
-                   |- Ought_Target No_Known_Should"
-    by (rule provable.mp[OF h_exp h_p])
+  show ?thesis by (rule provable.mp[OF h_exp h_p])
+qed
+
+lemma pigden_negation:
+  "{audit_bridge} ; {Is_Case No_Known_Should}
+     |- Not (Ought_Target No_Known_Should)"
+proof -
+  have h_ought:
+    "{audit_bridge} ; {Is_Case No_Known_Should} |- Ought_Target No_Known_Should"
+    by (rule ought_derived)
+  have h_fact_b: "!beta : {audit_bridge}. is_factual beta"
+    using bridge_is_factual by simp
+  have h_fact_g: "!phi' : {Is_Case No_Known_Should}. is_factual phi'"
+    by simp
   have h_subst:
     "{audit_bridge} ; {Is_Case No_Known_Should}
-       |- Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
-    using closure subst_bridge_eq by simp
-  have h_not: "{audit_bridge} ; {Is_Case No_Known_Should}
-                 |- Not (Ought_Target No_Known_Should)"
-    by (rule provable.mp[OF h_subst h_p])
-  have base_t: "!beta : {audit_bridge}. eval beta"
-    using audit_bridge_true by simp
-  have prem_t: "!phi : {Is_Case No_Known_Should}. eval phi"
-    by simp
-  have pos: "eval (Ought_Target No_Known_Should)"
-    using provable_sound[OF h_ought base_t prem_t] .
-  have neg: "eval (Not (Ought_Target No_Known_Should))"
-    using provable_sound[OF h_not base_t prem_t] .
-  from pos neg show False by simp
+       |- subst_ought R_pigden (Ought_Target No_Known_Should)"
+    by (rule provable.ax_pigden[OF h_ought h_fact_b h_fact_g])
+  have h_eq:
+    "subst_ought R_pigden (Ought_Target No_Known_Should)
+       = Not (Ought_Target No_Known_Should)"
+    unfolding R_pigden_def by simp
+  show ?thesis using h_subst h_eq by simp
 qed
+
+lemma falsum_derived:
+  "{audit_bridge} ; {Is_Case No_Known_Should} |- Falsum"
+proof (rule provable.ax_falsum_in)
+  show "{audit_bridge} ; {Is_Case No_Known_Should} |- Ought_Target No_Known_Should"
+    by (rule ought_derived)
+  show "{audit_bridge} ; {Is_Case No_Known_Should}
+          |- Not (Ought_Target No_Known_Should)"
+    by (rule pigden_negation)
+qed
+
+theorem inconsistency_of_audit: False
+  using falsum_derived by (rule provable.ax_falsum_el)
 
 end
