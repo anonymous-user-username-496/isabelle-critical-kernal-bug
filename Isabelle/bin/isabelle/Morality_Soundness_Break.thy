@@ -18,15 +18,6 @@ proof (rule notI)
     have c_eval: "(Known_Should :: knowledge_case) = Known_Should \<or> (Known_Should :: knowledge_case) = No_Known_Should"
       using exhaustive_cases [of Known_Should] .
 
-    have obl_def: "\<^bold>O\<^sub>i phi = (\<lambda>c w. ob (pv w) (phi c) \<and> (EX y. pv w y \<and> \<not> phi c y))" for phi
-      using obligation_explicit .
-
-    have know_def: "(\<bold>K R phi) W w = (ALL v. (W v \<and> R w v) \<longrightarrow> phi W v)" for R phi W w
-      using knowledge_explicit .
-
-    have should_known_unfold: "should_known R phi W w \<longleftrightarrow> (\<bold>K R phi) W w" for R phi W w
-      unfolding should_known_def ..
-
     have modal_grounding: "\<lfloor>PPA x \<^bold>\<rightarrow> RightTo x FWB\<rfloor>\<^sup>D"
       using gewirth_deriv .
 
@@ -37,7 +28,7 @@ proof (rule notI)
       have step_c: "(\<exists>c. c = Known_Should) \<and> soundness" 
         using step_a step_b by blast
       thus ?thesis
-        using modal_grounding obl_def know_def should_known_unfold c_eval
+        using modal_grounding obligation_explicit knowledge_explicit should_known_def c_eval
         by blast
     qed
 
@@ -49,15 +40,6 @@ proof (rule notI)
     have c_eval: "(No_Known_Should :: knowledge_case) = Known_Should \<or> (No_Known_Should :: knowledge_case) = No_Known_Should"
       using exhaustive_cases [of No_Known_Should] .
 
-    have obl_def: "\<^bold>O\<^sub>i phi = (\<lambda>c w. ob (pv w) (phi c) \<and> (EX y. pv w y \<and> \<not> phi c y))" for phi
-      using obligation_explicit .
-
-    have know_def: "(\<bold>K R phi) W w = (ALL v. (W v \<and> R w v) \<longrightarrow> phi W v)" for R phi W w
-      using knowledge_explicit .
-
-    have inv_purpose: "investigate_purpose x E \<longleftrightarrow> \<lfloor>\<^bold>O\<^sub>i(ActsOnPurpose x E)\<rfloor>" for x E
-      unfolding investigate_purpose_def ..
-
     have modal_grounding: "\<lfloor>PPA x \<^bold>\<rightarrow> RightTo x FWB\<rfloor>\<^sup>D"
       using gewirth_deriv .
 
@@ -68,7 +50,7 @@ proof (rule notI)
       have step_c: "(\<exists>c. c = No_Known_Should) \<and> soundness"
         using step_a step_b by blast
       thus ?thesis
-        using modal_grounding obl_def know_def inv_purpose c_eval
+        using modal_grounding obligation_explicit knowledge_explicit investigate_purpose_def c_eval
         by blast
     qed
 
