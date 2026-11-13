@@ -52,7 +52,7 @@ proof
       unfolding should_known_def should_to_be_found_def
       by simp
   qed
-qed
+end
 
 (* ================================================================= *)
 (* PART 2: Hilbert Calculus & Proven Substitutivity (Induction)      *)
@@ -89,7 +89,7 @@ proof (induction rule: provable.induct)
   case (ax_base A B \<Gamma>)
   then show ?case using provable.ax_base by simp
 next
-  case (ax_assm A \<Gamma>)
+  case (ax_assm A B \<Gamma>)
   then show ?case using provable.ax_assm by simp
 next
   case (ax_k B \<Gamma> A C)
@@ -131,14 +131,14 @@ definition audit_bridge :: syn_form where
 lemma audit_bridge_valid_by_audit_lemmas:
   "eval audit_bridge"
 proof -
-  have "No_Known_Should = No_Known_Should" by simp
-  hence "investigate_purpose No_Known_Should"
-    by (rule investigate_when_should_unknown)
-  hence "should_to_be_found No_Known_Should"
-    using should_to_be_found_iff_investigate[of No_Known_Should] by simp
+  have h1: "No_Known_Should = No_Known_Should" by simp
+  have h2: "investigate_purpose No_Known_Should"
+    using investigate_when_should_unknown[OF h1] .
+  have h3: "should_to_be_found No_Known_Should"
+    using should_to_be_found_iff_investigate[of No_Known_Should] h2 by simp
   thus "eval audit_bridge"
     unfolding audit_bridge_def by simp
-.
+qed
 
 (* ================================================================= *)
 (* PART 4: The Definitional Collision Theorem (Zero Sorries)         *)
@@ -148,8 +148,6 @@ definition pigden_holds_on :: "syn_form set \<Rightarrow> bool" where
   "pigden_holds_on B \<longleftrightarrow>
      (\<forall>\<Gamma> \<psi> R. (B ; \<Gamma> \<turnstile> \<psi>) \<longrightarrow> (\<forall>\<phi> \<in> \<Gamma>. subst_ought R \<phi> = \<phi>) \<longrightarrow> (B ; \<Gamma> \<turnstile> subst_ought R \<psi>))"
 
-(* Theorem: Pigden's structural invariance definition and the audit's analytic bridge definition 
-   are mutually exclusive; assuming both hold simultaneously derives False. *)
 theorem definitional_collision_theorem:
   assumes pigden_system_invariant: "pigden_holds_on {audit_bridge}"
   shows False
@@ -161,10 +159,12 @@ proof -
   (* Step 1: Derive Ought_Target No_Known_Should using the audit bridge definition *)
   have h_prem: "B ; \<Gamma> \<turnstile> Is_Case No_Known_Should"
     unfolding \<Gamma>_def by (rule provable.ax_assm) simp
-  have h_ax: "B ; \<Gamma> \<turnstile> Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
-    unfolding B_def audit_bridge_def by (rule provable.ax_base) simp
+  have h_ax: "B ; \<Gamma> \<turnstile> audit_bridge"
+    unfolding B_def by (rule provable.ax_base) simp
+  have h_ax_expanded: "B ; \<Gamma> \<turnstile> Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
+    using h_ax unfolding audit_bridge_def .
   have deriv_ought: "B ; \<Gamma> \<turnstile> Ought_Target No_Known_Should"
-    by (rule provable.mp[OF h_ax h_prem])
+    by (rule provable.mp[OF h_ax_expanded h_prem])
 
   (* Step 2: The descriptive premise set \<Gamma> is invariant under substitution R *)
   have gamma_inv: "\<forall>\<phi> \<in> \<Gamma>. subst_ought R \<phi> = \<phi>"
@@ -174,7 +174,7 @@ proof -
   have deriv_sub: "B ; \<Gamma> \<turnstile> subst_ought R (Ought_Target No_Known_Should)"
     using pigden_system_invariant deriv_ought gamma_inv
     unfolding pigden_holds_on_def B_def by blast
-  have deriv_not_ought: "B ; \<Gamma> \<textstile> Not (Ought_Target No_Known_Should)"
+  have deriv_not_ought: "B ; \<Gamma> \<turnstile> Not (Ought_Target No_Known_Should)"
     using deriv_sub unfolding R_def by simp
 
   (* Step 4: Verify semantic truth of both B and \<Gamma> via your audit's lemmas *)
