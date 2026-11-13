@@ -130,11 +130,8 @@ next
   show ?case by auto
 next
   case (mp B \<Gamma> A C)
-  (* Explicitly structured resolution for Modus Ponens soundness *)
-  have eval_imp: "eval (Imp A C) \<longleftrightarrow> (eval A \<longrightarrow> eval C)" by simp
-  have eval_ac: "eval (Imp A C)" using mp.IH(1) .
-  have eval_a: "eval A" using mp.IH(2) .
-  show "eval C" using eval_imp eval_ac eval_a by blast
+  (* Using auto here correctly unfolds the primrec definition of eval for Imp *)
+  show ?case using mp.IH(1) mp.IH(2) by auto
 qed
 
 definition audit_bridge :: syn_form where
