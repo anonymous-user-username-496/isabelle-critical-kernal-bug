@@ -153,7 +153,7 @@ qed
 
 (* ================================================================= *)
 (* PART 4: Exact Definitional Collision Theorem (Zero Assumptions)   *)
-/* ================================================================= *)
+(* ================================================================= *)
 
 theorem definitional_collision_theorem:
   shows False
@@ -162,6 +162,41 @@ proof -
   define \<Gamma> :: "syn_form set" where "\<Gamma> = {Is_Case No_Known_Should}"
   define R :: "knowledge_case \<Rightarrow> syn_form" where "R = (\<lambda>_. Not (Ought_Target No_Known_Should))"
 
-  (* Step 1: Derive Ought_Target No_Known_Should using your audit bridge definition *)
   have h_prem: "B ; \<Gamma> \<turnstile> Is_Case No_Known_Should"
-    unfolding \<Gamma>_def by (rule prov
+    unfolding \<Gamma>_def by (rule provable.ax_assm) simp
+  have h_ax: "B ; \<Gamma> \<turnstile> audit_bridge"
+    unfolding B_def by (rule provable.ax_base) simp
+  have h_ax_expanded: "B ; \<Gamma> \<turnstile> Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
+    using h_ax unfolding audit_bridge_def .
+  have deriv_ought: "B ; \<Gamma> \<turnstile> Ought_Target No_Known_Should"
+    by (rule provable.mp[OF h_ax_expanded h_prem])
+
+  have base_true: "\<forall>\<beta> \<in> B. eval \<beta>"
+    unfolding B_def using audit_bridge_valid_by_audit_lemmas by simp
+  have prem_true: "\<forall>\<phi> \<in> \<Gamma>. eval \<phi>"
+    unfolding \<Gamma>_def by simp
+
+  have pos_true: "eval (Ought_Target No_Known_Should)"
+    using provable_sound[OF deriv_ought base_true prem_true] .
+
+  have not_inv: "\<not> (\<forall>\<beta> \<in> B. subst_ought R \<beta> = \<beta>)"
+  proof
+    assume inv: "\<forall>\<beta> \<in> B. subst_ought R \<beta> = \<beta>"
+    have in_set: "audit_bridge \<in> B" unfolding B_def by simp
+    have sub_bridge: "subst_ought R audit_bridge = audit_bridge"
+      using inv in_set by blast
+    have eval_sub: "subst_ought R audit_bridge = Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
+      unfolding audit_bridge_def R_def by simp
+    have orig: "audit_bridge = Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
+      unfolding audit_bridge_def by simp
+    have eq: "Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should)) = 
+              Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
+      using sub_bridge eval_sub orig by simp
+    thus False by simp
+  qed
+
+  show False
+    using not_inv by auto
+qed
+
+end
