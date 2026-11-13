@@ -50,8 +50,7 @@ proof (rule notI)
       using c_eval by blast
     thus ?thesis
     proof cases
-      case 1
-      -- "Narrowed to explicit propositional reduction instead of heavy unguided search"
+      case 
       have contradiction_witness: "False"
         using s_ref gewirth_deriv h1 1 by simp
       thus ?thesis .
