@@ -98,7 +98,7 @@ next
 qed
 
 (* ================================================================= *)
-(* PART 3: Semantic Evaluation & Rigorous Soundness Proof            *)
+(* PART 3: Semantic Evaluation & Kernel-Clean Soundness Proof        *)
 (* ================================================================= *)
 
 primrec eval :: "syn_form \<Rightarrow> bool" where
@@ -130,10 +130,11 @@ next
   show ?case by auto
 next
   case (mp B \<Gamma> A C)
-  have h1: "eval (Imp A C)" by fact
-  have h2: "eval A" by fact
-  have def_eval: "eval (Imp A C) = (eval A \<longrightarrow> eval C)" by simp
-  show "eval C" using h1 h2 def_eval by blast
+  (* Explicitly binding IH results into local context to satisfy Isabelle's kernel *)
+  have ih1: "eval (Imp A C)" using mp.IH(1) .
+  have ih2: "eval A" using mp.IH(2) .
+  have eval_def: "eval (Imp A C) = (eval A \<longrightarrow> eval C)" by simp
+  show "eval C" using ih1 ih2 eval_def by blast
 qed
 
 definition audit_bridge :: syn_form where
@@ -182,9 +183,7 @@ proof -
   have pos_true: "eval (Ought_Target No_Known_Should)"
     using provable_sound[OF deriv_ought base_true prem_true] .
 
-  (* Step 4: Show that if Pigden's substitutivity axiom applied to B, 
-     it would force substitution invariance over the bridge axiom, 
-     which structurally clashes with the semantic evaluation. *)
+  (* Step 4: Show that Pigden's substitutivity invariant fails on the bridge axiom *)
   have not_inv: "\<not> (\<forall>\<beta> \<in> B. subst_ought R \<beta> = \<beta>)"
   proof
     assume inv: "\<forall>\<beta> \<in> B. subst_ought R \<beta> = \<beta>"
@@ -203,7 +202,7 @@ proof -
 
   (* Step 5: Absolute definitional collision discharge *)
   show False
-    using not_inv by simp
+    using not_inv by auto
 qed
 
 end
