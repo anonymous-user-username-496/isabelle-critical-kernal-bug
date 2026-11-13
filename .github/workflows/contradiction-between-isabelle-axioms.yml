@@ -50,13 +50,12 @@ jobs:
           fi
      
       - name: Build only the requested session using available heaps
-       shell: bash
-       run: |
-        set -euo pipefail
-        ISABELLE="$GITHUB_WORKSPACE/.ci-deps/Isabelle${ISABELLE_VERSION}/bin/isabelle"
-        "$ISABELLE" build -c -v -D "$GITHUB_WORKSPACE/Isabelle/bin/isabelle" \
-          2>&1 | tee "$RUNNER_TEMP/isabelle-build.log"   
-    
+        shell: bash
+        run: |
+          set -euo pipefail
+          ISABELLE="$GITHUB_WORKSPACE/.ci-deps/Isabelle${ISABELLE_VERSION}/bin/isabelle"
+          "$ISABELLE" build -c -v -D "$GITHUB_WORKSPACE/Isabelle/bin/isabelle" \
+            2>&1 | tee "$RUNNER_TEMP/isabelle-build.log"   
           
       - name: Upload build log
         if: always()
@@ -65,11 +64,13 @@ jobs:
           name: isabelle-build-log
           path: ${{ runner.temp }}/isabelle-build.log
           if-no-files-found: ignore
+
       - name: Generate GitHub build attestation
         if: success() && github.event_name != 'pull_request'
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: ${{ runner.temp }}/isabelle-build.log
+
       - name: Verify GitHub attestation
         if: success() && github.event_name != 'pull_request'
         env:
@@ -83,6 +84,4 @@ jobs:
           gh attestation verify \
             "$RUNNER_TEMP/isabelle-build.log" \
             --repo "$GITHUB_REPOSITORY"
-
-          
-        
+            
