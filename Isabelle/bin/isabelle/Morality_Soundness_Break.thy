@@ -31,9 +31,6 @@ theorem not_soundness: "\<not> soundness"
 proof (rule notI)
   assume sound_hyp: soundness
 
-  have s_inst: "({} :: form set) \<turnstile> Var 0 \<Longrightarrow> ({} :: form set) \<models> Var 0"
-    using sound_hyp [of "{}" "Var 0"] .
-
   have gewirth_deriv: "\<lfloor>PPA (x::e) \<^bold>\<rightarrow> RightTo (x::e) FWB\<rfloor>\<^sup>D"
     using Gewirth_moral_should .
 
@@ -47,9 +44,10 @@ proof (rule notI)
       using exhaustive_cases [of Known_Should] .
 
     have h1: "Known_Should = Known_Should" by simp
+    have s_ref: "soundness" using sound_hyp .
 
     show ?thesis
-      using s_inst gewirth_deriv c_eval h1 sound_hyp
+      using s_ref gewirth_deriv c_eval h1
       by blast
   qed
 
@@ -59,9 +57,10 @@ proof (rule notI)
       using exhaustive_cases [of No_Known_Should] .
 
     have h1: "No_Known_Should = No_Known_Should" by simp
+    have s_ref: "soundness" using sound_hyp .
 
     show ?thesis
-      using s_inst gewirth_deriv c_eval h1 sound_hyp
+      using s_ref gewirth_deriv c_eval h1
       by blast
   qed
 
