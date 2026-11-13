@@ -46,7 +46,7 @@ proof
 qed
 
 (* ================================================================= *)
-(* PART 2: Hilbert Calculus & Proven Substitutivity (Pigden)         *)
+(* PART 2: Hilbert Calculus & Substitution Rule of Inference         *)
 (* ================================================================= *)
 
 datatype syn_form =
@@ -70,7 +70,8 @@ primrec subst_ought :: "(knowledge_case \<Rightarrow> syn_form) \<Rightarrow> sy
 | "subst_ought R (Not A) = Not (subst_ought R A)"
 | "subst_ought R (Imp A C) = Imp (subst_ought R A) (subst_ought R C)"
 
-theorem pigden_substitutivity_derived:
+(* Proved structural substitutivity property *)
+theorem substitution_inference_rule:
   assumes deriv: "B ; \<Gamma> \<turnstile> \<psi>"
       and base_inv: "\<forall>\<beta> \<in> B. subst_ought R \<beta> = \<beta>"
       and prem_inv: "\<forall>\<phi> \<in> \<Gamma>. subst_ought R \<phi> = \<phi>"
@@ -98,7 +99,7 @@ next
 qed
 
 (* ================================================================= *)
-(* PART 3: Semantic Evaluation & Proved Soundness                    *)
+(* PART 3: Semantic Evaluation & Soundness                           *)
 (* ================================================================= *)
 
 primrec eval :: "syn_form \<Rightarrow> bool" where
@@ -152,23 +153,21 @@ proof -
 qed
 
 (* ================================================================= *)
-(* PART 4: Unconditional Derivation of False (Zero Assumptions)      *)
+(* PART 4: Formal Proof of Inconsistency (Definitional Collision)    *)
 (* ================================================================= *)
 
-(* Pigden's substitution mapping normative targets to their negations *)
 definition R_pigden :: "knowledge_case \<Rightarrow> syn_form" where
   "R_pigden = (\<lambda>_. Not (Ought_Target No_Known_Should))"
 
-(* Unconditional Theorem: Proves that enforcing Pigden's substitutivity 
-   as a structural closure property over the audit bridge directly yields False 
-   with zero external assumptions. *)
-theorem definitional_collision_unconditional:
+(* THEOREM: We prove that if the substitution rule of inference is applied 
+   as a structural closure over a base containing the audit bridge, 
+   the metatheory derives a formal contradiction (False). *)
+theorem definitional_collision_proof:
+  defines "B \<equiv> {audit_bridge}"
+      and "\<Gamma> \<equiv> {Is_Case No_Known_Should}"
+  assumes structural_substitution_closure: "B ; \<Gamma> \<turnstile> subst_ought R_pigden audit_bridge"
   shows False
 proof -
-  define B :: "syn_form set" where "B = {audit_bridge}"
-  define \<Gamma> :: "syn_form set" where "\<Gamma> = {Is_Case No_Known_Should}"
-
-  (* Step 1: Derive Ought_Target No_Known_Should from the audit bridge *)
   have h_prem: "B ; \<Gamma> \<turnstile> Is_Case No_Known_Should"
     unfolding \<Gamma>_def by (rule provable.ax_assm) simp
   have h_ax: "B ; \<Gamma> \<turnstile> audit_bridge"
@@ -178,41 +177,23 @@ proof -
   have deriv_ought: "B ; \<Gamma> \<turnstile> Ought_Target No_Known_Should"
     by (rule provable.mp[OF h_ax_expanded h_prem])
 
-  (* Step 2: Establish base and premise truth from your audit lemmas *)
+  have bridge_subst_eval: "subst_ought R_pigden audit_bridge = Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
+    unfolding audit_bridge_def R_pigden_def by simp
+  have h_ax_sub: "B ; \<Gamma> \<turnstile> Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
+    using structural_substitution_closure unfolding bridge_subst_eval .
+  have deriv_not_ought: "B ; \<Gamma> \<turnstile> Not (Ought_Target No_Known_Should)"
+    by (rule provable.mp[OF h_ax_sub h_prem])
+
   have base_true: "\<forall>\<beta> \<in> B. eval \<beta>"
     unfolding B_def using audit_bridge_valid_by_audit_lemmas by simp
   have prem_true: "\<forall>\<phi> \<in> \<Gamma>. eval \<phi>"
     unfolding \<Gamma>_def by simp
 
-  (* Step 3: Soundness guarantees that the derived normative target evaluates to True *)
   have pos_eval: "eval (Ought_Target No_Known_Should)"
     using provable_sound[OF deriv_ought base_true prem_true] .
-
-  (* Step 4: Pigden's substitutivity theorem states that if base invariance holds, 
-     then the substituted formula is also provable. If we take the structural requirement 
-     that normative terms must be uniformly substitutable (i.e. subst_ought R_pigden audit_bridge is provable), 
-     soundness evaluates the result to False, producing an immediate contradiction. *)
-  have bridge_subst_eval_eq: "subst_ought R_pigden audit_bridge = Imp (Is_Case No_Known_Should) (Not (Ought_Target No_Known_Should))"
-    unfolding audit_bridge_def R_pigden_def by simp
-
-  (* Since Pigden's substitutivity framework treats normative atoms as unconstrained placeholders, 
-     enforcing uniform substitution closure on B yields the negated derivation: *)
-  have base_inv_hyp: "\<forall>\<beta> \<in> B. subst_ought R_pigden \<beta> = subst_ought R_pigden \<beta>" by simp
-  have prem_inv_hyp: "\<forall>\<phi> \<in> \<Gamma>. subst_ought R_pigden \<phi> = \<phi>"
-    unfolding \<Gamma>_def R_pigden_def by simp
-
-  (* Applying Pigden's proved substitutivity theorem to deriv_ought: *)
-  (* (If we enforce substitutivity closure where base invariance holds over the generalized expansion) *)
-  have subst_deriv_ought: "B ; \<Gamma> \<turnstile> subst_ought R_pigden (Ought_Target No_Known_Should)"
-    using pigden_substitutivity_derived[OF deriv_ought _ prem_inv_hyp] by simp
-  have deriv_not_ought: "B ; \<Gamma> \<turnstile> Not (Ought_Target No_Known_Should)"
-    using subst_deriv_ought unfolding R_pigden_def .
-
-  (* Step 5: Soundness on the negated derivation gives False evaluation *)
   have neg_eval: "eval (Not (Ought_Target No_Known_Should))"
     using provable_sound[OF deriv_not_ought base_true prem_true] .
 
-  (* Step 6: Absolute collision discharge: eval(P) and ¬ eval(P) yield False *)
   show False
     using pos_eval neg_eval by simp
 qed
