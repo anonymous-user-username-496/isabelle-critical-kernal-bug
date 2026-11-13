@@ -38,21 +38,8 @@ lemma should_to_be_found_iff_investigate:
 
 theorem should_status_exhaustive:
   "\<forall>c. should_known c \<or> should_to_be_found c"
-proof
-  fix c
-  show "should_known c \<or> should_to_be_found c"
-  proof (cases c)
-    case Known_Should
-    then show ?thesis
-      unfolding should_known_def
-      by simp
-  next
-    case No_Known_Should
-    then show ?thesis
-      unfolding should_known_def should_to_be_found_def
-      by simp
-  qed
-end
+  unfolding should_known_def should_to_be_found_def
+  by (cases c) simp_all
 
 (* ================================================================= *)
 (* PART 2: Hilbert Calculus & Proven Substitutivity (Induction)      *)
@@ -124,7 +111,6 @@ lemma provable_sound:
   using deriv base_true prem_true
   by (induction rule: provable.induct) simp_all
 
-(* The analytic bridge definition, validated directly by your exact lemmas *)
 definition audit_bridge :: syn_form where
   "audit_bridge = Imp (Is_Case No_Known_Should) (Ought_Target No_Known_Should)"
 
@@ -156,7 +142,6 @@ proof -
   define \<Gamma> :: "syn_form set" where "\<Gamma> = {Is_Case No_Known_Should}"
   define R :: "knowledge_case \<Rightarrow> syn_form" where "R = (\<lambda>_. Not (Ought_Target No_Known_Should))"
 
-  (* Step 1: Derive Ought_Target No_Known_Should using the audit bridge definition *)
   have h_prem: "B ; \<Gamma> \<turnstile> Is_Case No_Known_Should"
     unfolding \<Gamma>_def by (rule provable.ax_assm) simp
   have h_ax: "B ; \<Gamma> \<turnstile> audit_bridge"
@@ -166,30 +151,25 @@ proof -
   have deriv_ought: "B ; \<Gamma> \<turnstile> Ought_Target No_Known_Should"
     by (rule provable.mp[OF h_ax_expanded h_prem])
 
-  (* Step 2: The descriptive premise set \<Gamma> is invariant under substitution R *)
   have gamma_inv: "\<forall>\<phi> \<in> \<Gamma>. subst_ought R \<phi> = \<phi>"
     unfolding \<Gamma>_def by simp
 
-  (* Step 3: Apply Pigden's structural invariance definition to force the negated derivation *)
   have deriv_sub: "B ; \<Gamma> \<turnstile> subst_ought R (Ought_Target No_Known_Should)"
     using pigden_system_invariant deriv_ought gamma_inv
     unfolding pigden_holds_on_def B_def by blast
   have deriv_not_ought: "B ; \<Gamma> \<turnstile> Not (Ought_Target No_Known_Should)"
     using deriv_sub unfolding R_def by simp
 
-  (* Step 4: Verify semantic truth of both B and \<Gamma> via your audit's lemmas *)
   have base_true: "\<forall>\<beta> \<in> B. eval \<beta>"
     unfolding B_def using audit_bridge_valid_by_audit_lemmas by simp
   have prem_true: "\<forall>\<phi> \<in> \<Gamma>. eval \<phi>"
     unfolding \<Gamma>_def by simp
 
-  (* Step 5: Soundness extracts both the positive and negative evaluations *)
   have pos_true: "eval (Ought_Target No_Known_Should)"
     using provable_sound[OF deriv_ought base_true prem_true] .
   have neg_true: "eval (Not (Ought_Target No_Known_Should))"
     using provable_sound[OF deriv_not_ought base_true prem_true] .
 
-  (* Step 6: Absolute definitional collision collapse *)
   show False
     using pos_true neg_true by simp
 qed
