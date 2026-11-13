@@ -70,7 +70,6 @@ primrec subst_ought :: "(knowledge_case \<Rightarrow> syn_form) \<Rightarrow> sy
 | "subst_ought R (Not A) = Not (subst_ought R A)"
 | "subst_ought R (Imp A C) = Imp (subst_ought R A) (subst_ought R C)"
 
-(* Pigden's theorem PROVED by full structural induction (Zero Assumptions) *)
 theorem pigden_substitutivity_proved:
   assumes deriv: "B ; \<Gamma> \<turnstile> \<psi>"
       and base_inv: "\<forall>\<beta> \<in> B. subst_ought R \<beta> = \<beta>"
@@ -99,7 +98,7 @@ next
 qed
 
 (* ================================================================= *)
-(* PART 3: Semantic Evaluation Grounded in Your Audit Lemmas         *)
+(* PART 3: Semantic Evaluation & Fixed Soundness Proof               *)
 (* ================================================================= *)
 
 primrec eval :: "syn_form \<Rightarrow> bool" where
@@ -131,8 +130,11 @@ next
   show ?case by auto
 next
   case (mp B \<Gamma> A C)
-  have "eval (Imp A C) \<longleftrightarrow> (eval A \<longrightarrow> eval C)" by simp
-  with mp.IH(1) mp.IH(2) show ?case by blast
+  (* Explicitly structured resolution for Modus Ponens soundness *)
+  have eval_imp: "eval (Imp A C) \<longleftrightarrow> (eval A \<longrightarrow> eval C)" by simp
+  have eval_ac: "eval (Imp A C)" using mp.IH(1) .
+  have eval_a: "eval A" using mp.IH(2) .
+  show "eval C" using eval_imp eval_ac eval_a by blast
 qed
 
 definition audit_bridge :: syn_form where
@@ -151,13 +153,9 @@ proof -
 qed
 
 (* ================================================================= *)
-(* PART 4: Proven Definitional Incompatibility (Zero Assumptions)    *)
+(* PART 4: Proven Definitional Incompatibility                       *)
 (* ================================================================= *)
 
-(* We formally prove that Pigden's substitutivity precondition (base_inv) 
-   fails for any system containing the audit bridge under a normative negation substitution, 
-   demonstrating the exact structural boundary where Pigden's isolation theorem 
-   cannot apply to an analytically bridged system. *)
 theorem pigden_audit_incompatibility_proof:
   shows "\<not> (\<forall>\<beta> \<in> {audit_bridge}. subst_ought (\<lambda>_. Not (Ought_Target No_Known_Should)) \<beta> = \<beta>)"
 proof
