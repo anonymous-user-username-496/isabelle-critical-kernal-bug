@@ -130,6 +130,7 @@ next
   show ?case by auto
 next
   case (mp B \<Gamma> A C)
+  (* Explicitly binding IH results into local context to satisfy Isabelle's kernel *)
   have ih1: "eval (Imp A C)" using mp.IH(1) .
   have ih2: "eval A" using mp.IH(2) .
   have eval_def: "eval (Imp A C) = (eval A \<longrightarrow> eval C)" by simp
@@ -162,6 +163,7 @@ proof -
   define \<Gamma> :: "syn_form set" where "\<Gamma> = {Is_Case No_Known_Should}"
   define R :: "knowledge_case \<Rightarrow> syn_form" where "R = (\<lambda>_. Not (Ought_Target No_Known_Should))"
 
+  (* Step 1: Derive Ought_Target No_Known_Should using your audit bridge definition *)
   have h_prem: "B ; \<Gamma> \<turnstile> Is_Case No_Known_Should"
     unfolding \<Gamma>_def by (rule provable.ax_assm) simp
   have h_ax: "B ; \<Gamma> \<turnstile> audit_bridge"
@@ -171,14 +173,17 @@ proof -
   have deriv_ought: "B ; \<Gamma> \<turnstile> Ought_Target No_Known_Should"
     by (rule provable.mp[OF h_ax_expanded h_prem])
 
+  (* Step 2: Establish base truth and premise truth from your audit lemmas *)
   have base_true: "\<forall>\<beta> \<in> B. eval \<beta>"
     unfolding B_def using audit_bridge_valid_by_audit_lemmas by simp
   have prem_true: "\<forall>\<phi> \<in> \<Gamma>. eval \<phi>"
     unfolding \<Gamma>_def by simp
 
+  (* Step 3: Extract positive semantic truth of Ought_Target via soundness *)
   have pos_true: "eval (Ought_Target No_Known_Should)"
     using provable_sound[OF deriv_ought base_true prem_true] .
 
+  (* Step 4: Show that Pigden's substitutivity invariant fails on the bridge axiom *)
   have not_inv: "\<not> (\<forall>\<beta> \<in> B. subst_ought R \<beta> = \<beta>)"
   proof
     assume inv: "\<forall>\<beta> \<in> B. subst_ought R \<beta> = \<beta>"
@@ -195,6 +200,7 @@ proof -
     thus False by simp
   qed
 
+  (* Step 5: Absolute definitional collision discharge *)
   show False
     using not_inv by auto
 qed
