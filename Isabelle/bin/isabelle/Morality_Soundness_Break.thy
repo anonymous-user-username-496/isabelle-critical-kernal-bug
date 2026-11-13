@@ -52,15 +52,15 @@ proof (rule notI)
     proof cases
       case 1
       have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 1 by blast
+        using s_ref gewirth_deriv h1 1 obligation_explicit knowledge_explicit should_known_def by blast
       thus ?thesis .
     next
       case 2
       have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 2 by blast
+        using s_ref gewirth_deriv h1 2 obligation_explicit knowledge_explicit should_known_def by blast
       thus ?thesis .
     end
-  qed
+  end
 
   have case_no_known_should: "False"
   proof -
@@ -76,15 +76,15 @@ proof (rule notI)
     proof cases
       case 1
       have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 1 by blast
+        using s_ref gewirth_deriv h1 1 obligation_explicit knowledge_explicit investigate_purpose_def by blast
       thus ?thesis .
     next
       case 2
       have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 2 by blast
+        using s_ref gewirth_deriv h1 2 obligation_explicit knowledge_explicit investigate_purpose_def by blast
       thus ?thesis .
     end
-  qed
+  end
 
   show False
     using exhaustive_cases [of Known_Should] case_known_should case_no_known_should
