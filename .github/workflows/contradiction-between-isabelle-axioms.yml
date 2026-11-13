@@ -49,14 +49,14 @@ jobs:
             rm .ci-deps/isabelle.tar.gz
           fi
           
-      - name: Build only the requested session using available heaps
-        shell: bash
-        run: |
-          set -euo pipefail
-          ISABELLE="$GITHUB_WORKSPACE/.ci-deps/Isabelle${ISABELLE_VERSION}/bin/isabelle"
-          "$ISABELLE" build -c -v
-            -d "$GITHUB_WORKSPACE/Isabelle/bin/isabelle" \
-            Argument_Audit 2>&1 | tee "$RUNNER_TEMP/isabelle-build.log"     
+    - name: Build only the requested session using available heaps
+      shell: bash
+      run: |
+        set -euo pipefail
+        ISABELLE="$GITHUB_WORKSPACE/.ci-deps/Isabelle${ISABELLE_VERSION}/bin/isabelle"
+        "$ISABELLE" build -c -v -D "$GITHUB_WORKSPACE/Isabelle/bin/isabelle" \
+          2>&1 | tee "$RUNNER_TEMP/isabelle-build.log"
+          
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
