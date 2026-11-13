@@ -51,13 +51,14 @@ proof (rule notI)
     thus ?thesis
     proof cases
       case 1
+      -- "Narrowed to explicit propositional reduction instead of heavy unguided search"
       have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 1 obligation_explicit knowledge_explicit should_known_def by blast
+        using s_ref gewirth_deriv h1 1 by simp
       thus ?thesis .
     next
       case 2
       have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 2 obligation_explicit knowledge_explicit should_known_def by blast
+        using s_ref gewirth_deriv h1 2 by simp
       thus ?thesis .
     end
   end
@@ -76,12 +77,12 @@ proof (rule notI)
     proof cases
       case 1
       have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 1 obligation_explicit knowledge_explicit investigate_purpose_def by blast
+        using s_ref gewirth_deriv h1 1 by simp
       thus ?thesis .
     next
       case 2
       have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 2 obligation_explicit knowledge_explicit investigate_purpose_def by blast
+        using s_ref gewirth_deriv h1 2 by simp
       thus ?thesis .
     end
   end
