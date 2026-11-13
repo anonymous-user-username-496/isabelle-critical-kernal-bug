@@ -50,7 +50,7 @@ proof (rule notI)
       using c_eval by blast
     thus ?thesis
     proof cases
-      case 
+      case 1
       have contradiction_witness: "False"
         using s_ref gewirth_deriv h1 1 by simp
       thus ?thesis .
