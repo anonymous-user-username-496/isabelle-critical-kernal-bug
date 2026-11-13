@@ -56,16 +56,13 @@ datatype syn_form =
   | Imp syn_form syn_form
 
 inductive provable :: "syn_form set \<Rightarrow> syn_form set \<Rightarrow> syn_form \<Rightarrow> bool"
-  for B :: "syn_form set" and \<Gamma> :: "syn_form set" and \<psi> :: syn_form
-  where
-  ax_base: "A \<in> B \<Longrightarrow> provable B \<Gamma> A"
-| ax_assm: "A \<in> \<Gamma> \<Longrightarrow> provable B \<Gamma> A"
-| ax_k:    "provable B \<Gamma> (Imp A (Imp C A))"
-| ax_s:    "provable B \<Gamma> (Imp (Imp A (Imp C D)) (Imp (Imp A C) (Imp A D)))"
-| ax_neg:  "provable B \<Gamma> (Imp (Imp (Not A) (Not C)) (Imp C A))"
-| mp:      "provable B \<Gamma> (Imp A C) \<Longrightarrow> provable B \<Gamma> A \<Longrightarrow> provable B \<Gamma> C"
-
-notation provable ("_ ; _ \<turnstile> _" [50, 50, 50] 50)
+  ("_ ; _ \<turnstile> _" [50, 50, 50] 50) where
+  ax_base: "A \<in> B \<Longrightarrow> B ; \<Gamma> \<turnstile> A"
+| ax_assm: "A \<in> \<Gamma> \<Longrightarrow> B ; \<Gamma> \<turnstile> A"
+| ax_k:    "B ; \<Gamma> \<turnstile> Imp A (Imp C A)"
+| ax_s:    "B ; \<Gamma> \<turnstile> Imp (Imp A (Imp C D)) (Imp (Imp A C) (Imp A D))"
+| ax_neg:  "B ; \<Gamma> \<turnstile> Imp (Imp (Not A) (Not C)) (Imp C A)"
+| mp:      "B ; \<Gamma> \<turnstile> Imp A C \<Longrightarrow> B ; \<Gamma> \<turnstile> A \<Longrightarrow> B ; \<Gamma> \<turnstile> C"
 
 primrec subst_ought :: "(knowledge_case \<Rightarrow> syn_form) \<Rightarrow> syn_form \<Rightarrow> syn_form" where
   "subst_ought R (Is_Case c) = Is_Case c"
@@ -87,7 +84,7 @@ next
   then show ?case using provable.ax_assm by simp
 next
   case (ax_k B \<Gamma> A C)
-  show ?case by (simp add: provable.ax_k)
+  show ?case (is "?B ; ?G \<turnstile> ?X") by (simp add: provable.ax_k)
 next
   case (ax_s B \<Gamma> A C D)
   show ?case by (simp add: provable.ax_s)
