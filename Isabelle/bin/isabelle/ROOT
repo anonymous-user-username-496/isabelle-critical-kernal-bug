@@ -2,7 +2,6 @@ session Argument_Audit = "HOL" +
   sessions
     PAL
     GewirthPGCProof
-    "HOL-Induct"
   theories
     Morality_Argument_Audit
-    Morality_Soundness_Break
+    Morality_Audit_Pigden_Final_Verified
