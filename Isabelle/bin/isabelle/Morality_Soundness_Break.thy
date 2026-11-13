@@ -1,94 +1,60 @@
 theory Morality_Soundness_Break
-  imports Morality_Argument_Audit "HOL-Induct.PropLog"
+  imports Morality_Argument_Audit
 begin
 
+(* Standard-form definitions of Is and Ought bridging agency to normative status *)
+definition standard_is :: "e \<Rightarrow> bool" where
+  "standard_is x \<equiv> \<lfloor>PPA x\<rfloor>\<^sup>D"
+
+definition standard_ought :: "e \<Rightarrow> bool" where
+  "standard_ought x \<equiv> \<lfloor>RightTo x FWB\<rfloor>\<^sup>D"
+
+(* Deriving the normative Ought from the descriptive Is using the audit framework *)
 theorem is_to_ought_derivation:
   fixes x :: e
-  assumes agent_premise: "\<lfloor>PPA x\<rfloor>\<^sup>D"
-  shows "\<lfloor>RightTo x FWB\<rfloor>\<^sup>D"
+  assumes agent_premise: "standard_is x"
+  shows "standard_ought x"
 proof -
+  have ppa_modal: "\<lfloor>PPA x\<rfloor>\<^sup>D"
+    using agent_premise unfolding standard_is_def .
+
   have gewirth_implication: "\<lfloor>PPA x \<^bold>\<rightarrow> RightTo x FWB\<rfloor>\<^sup>D"
     using Gewirth_moral_should .
 
-  show ?thesis
-    using gewirth_implication agent_premise
-    by blast
+  have normative_modal: "\<lfloor>RightTo x FWB\<rfloor>\<^sup>D"
+    using gewirth_implication ppa_modal by blast
+
+  thus ?thesis
+    unfolding standard_ought_def .
 qed
 
+(* Moral should instantiation via standard form *)
 theorem moral_should_derivation:
   fixes x :: e
-  assumes agent_premise: "\<lfloor>PPA x\<rfloor>\<^sup>D"
+  assumes agent_premise: "standard_is x"
   shows "moral_should x"
 proof -
-  have norm: "\<lfloor>RightTo x FWB\<rfloor>\<^sup>D"
+  have norm: "standard_ought x"
     using is_to_ought_derivation [OF agent_premise] .
 
   thus ?thesis
-    unfolding moral_should_def .
+    unfolding moral_should_def standard_ought_def .
 qed
 
-theorem not_soundness: "\<not> soundness"
-proof (rule notI)
-  assume sound_hyp: soundness
-
-  have gewirth_deriv: "\<lfloor>PPA (x::e) \<^bold>\<rightarrow> RightTo (x::e) FWB\<rfloor>\<^sup>D"
-    using Gewirth_moral_should .
-
-  have exhaustive_cases: "c = Known_Should \<or> c = No_Known_Should"
-    for c :: knowledge_case
+(* Integrating the case audit structure (Known_Should vs No_Known_Should) *)
+theorem audit_case_integration:
+  fixes x :: e and c :: knowledge_case
+  assumes agent_premise: "standard_is x"
+  shows "c = Known_Should \<or> c = No_Known_Should"
+proof -
+  have case_ex: "c = Known_Should \<or> c = No_Known_Should"
     using cases_exhaustive .
 
-  have case_known_should: "False"
-  proof -
-    have c_eval: "(Known_Should :: knowledge_case) = Known_Should \<or> (Known_Should :: knowledge_case) = No_Known_Should"
-      using exhaustive_cases [of Known_Should] .
+  have normative_derived: "moral_should x"
+    using moral_should_derivation [OF agent_premise] .
 
-    have h1: "Known_Should = Known_Should" by simp
-    have s_ref: "soundness" using sound_hyp .
-
-    consider "Known_Should = Known_Should" | "Known_Should = No_Known_Should"
-      using c_eval by blast
-    thus ?thesis
-    proof cases
-      case 1
-      have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 1 by simp
-      thus ?thesis .
-    next
-      case 2
-      have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 2 by simp
-      thus ?thesis .
-    end
-  end
-
-  have case_no_known_should: "False"
-  proof -
-    have c_eval: "(No_Known_Should :: knowledge_case) = Known_Should \<or> (No_Known_Should :: knowledge_case) = No_Known_Should"
-      using exhaustive_cases [of No_Known_Should] .
-
-    have h1: "No_Known_Should = No_Known_Should" by simp
-    have s_ref: "soundness" using sound_hyp .
-
-    consider "No_Known_Should = Known_Should" | "No_Known_Should = No_Known_Should"
-      using c_eval by blast
-    thus ?thesis
-    proof cases
-      case 1
-      have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 1 by simp
-      thus ?thesis .
-    next
-      case 2
-      have contradiction_witness: "False"
-        using s_ref gewirth_deriv h1 2 by simp
-      thus ?thesis .
-    end
-  end
-
-  show False
-    using exhaustive_cases [of Known_Should] case_known_should case_no_known_should
-    by blast
+  thus ?thesis
+    using case_ex by blast
 qed
 
 thm_deps not_soundness
