@@ -46,13 +46,11 @@ proof (rule notI)
     have h1: "Known_Should = Known_Should" by simp
     have s_ref: "soundness" using sound_hyp .
 
-    -- "Explicit case structuring to resolve the goal without handwaving"
     consider "Known_Should = Known_Should" | "Known_Should = No_Known_Should"
       using c_eval by blast
     thus ?thesis
     proof cases
       case 1
-      -- "Derive contradiction explicitly from the interaction of soundness and modal constraints"
       have contradiction_witness: "False"
         using s_ref gewirth_deriv h1 1 by blast
       thus ?thesis .
