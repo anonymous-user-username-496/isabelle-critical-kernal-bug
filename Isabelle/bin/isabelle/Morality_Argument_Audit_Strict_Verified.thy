@@ -55,7 +55,7 @@ definition entails_all :: "syn_form set => syn_form => bool" where
   "entails_all F M = (!oi. entails_at oi F M)"
 
 definition satisfiable :: "syn_form set => bool" where
-  "satisfiable F = (?oi. ?I. !phi. phi : F --> sat oi I phi)"
+  "satisfiable F = (?oi. ?I. (!phi. phi : F --> sat oi I phi))"
 
 definition valid :: "syn_form => bool" where
   "valid M = (!oi. !I. sat oi I M)"
@@ -174,7 +174,7 @@ proof (rule allI impI)
 qed
 
 definition non_vacuous :: "syn_form => bool" where
-  "non_vacuous M = (?oi1. ?oi2. ?I1. ?I2. sat oi1 I1 M & ~ sat oi2 I2 M)"
+  "non_vacuous M = (?oi1. ?oi2. ?I1. ?I2. (sat oi1 I1 M & ~ sat oi2 I2 M))"
 
 lemma ought_non_vacuous:
   "non_vacuous (Ought_Target No_Known_Should)"
@@ -226,12 +226,15 @@ proof (rule conjI)
     show "satisfiable {Is_Case No_Known_Should}"
       unfolding satisfiable_def
     proof (rule exI[of _ ought], rule exI[of _ "%c. True"])
-      show "!phi. phi : {Is_Case No_Known_Should} --> sat ought (%c. True) phi"
-      proof
-        fix phi
-        assume hphi: "phi : {Is_Case No_Known_Should}"
-        show "sat ought (%c. True) phi"
-          using hphi by simp
+      show "?I. (!phi. phi : {Is_Case No_Known_Should} --> sat ought I phi)"
+      proof (rule exI[of _ "%c. True"])
+        show "!phi. phi : {Is_Case No_Known_Should} --> sat ought (%c. True) phi"
+        proof
+          fix phi
+          assume hphi: "phi : {Is_Case No_Known_Should}"
+          show "sat ought (%c. True) phi"
+            using hphi by simp
+        qed
       qed
     qed
   qed
