@@ -10,7 +10,7 @@ definition should_known :: "knowledge_case => bool" where
   "should_known c = (c = Known_Should)"
 
 definition should_to_be_found :: "knowledge_case => bool" where
-  "should_to_be_found c = (~ should_known c)"
+  "should_to_be_found c = (c ~= Known_Should)"
 
 definition ought :: "knowledge_case => bool" where
   "ought c = (should_known c | should_to_be_found c)"
