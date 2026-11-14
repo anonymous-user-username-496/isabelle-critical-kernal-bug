@@ -140,7 +140,7 @@ proof -
       fix oi i
       from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
         unfolding satisfiable_def by blast
-      have h_all: "\<forall>o. entails_at o F M" 
+      have h_all: "\<forall>o::interp. entails_at o F M" 
         using h_ent unfolding entails_all_def .
       have h_at: "entails_at oi F M" 
         using h_all [rule_format, of oi] .
@@ -199,7 +199,7 @@ lemma countermodel_at_oi:
   shows False
 proof -
   from h_false obtain i0 where hi0: "\<not> sat oi i0 M" by blast
-  have h_loc_all: "\<forall>idx. sat oi idx M" 
+  have h_loc_all: "\<forall>idx::interp. sat oi idx M" 
     using pigden_local[OF h_ent h_fact h_sat] .
   have hs: "sat oi i0 M" 
     using h_loc_all [rule_format, of i0] .
@@ -254,7 +254,7 @@ proof -
   have h1: "entails_at ought {Is_Case No_Known_Should}
                             (Ought_Target No_Known_Should)"
     by (rule my_argument)
-  have h_pig_gen: "\<forall>o. \<not> entails_at o {Is_Case No_Known_Should} (Ought_Target No_Known_Should)" 
+  have h_pig_gen: "\<forall>o::interp. \<not> entails_at o {Is_Case No_Known_Should} (Ought_Target No_Known_Should)" 
     using pigden .
   have h2: "\<not> entails_at ought {Is_Case No_Known_Should}
                                (Ought_Target No_Known_Should)"
@@ -305,9 +305,9 @@ next
   show "\<not> (\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))"
   proof
     assume h: "\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should)"
-    have h_gen: "\<forall>o. \<exists>idx. \<not> sat o idx (Ought_Target No_Known_Should)" 
+    have h_gen: "\<forall>o::interp. \<exists>idx::interp. \<not> sat o idx (Ought_Target No_Known_Should)" 
       using h .
-    have h1: "\<exists>idx. \<not> sat ought idx (Ought_Target No_Known_Should)"
+    have h1: "\<exists>idx::interp. \<not> sat ought idx (Ought_Target No_Known_Should)"
       using h_gen [rule_format, of ought] .
     from h1 obtain i0 where hi0: "\<not> sat ought i0 (Ought_Target No_Known_Should)"
       by blast
