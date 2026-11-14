@@ -271,34 +271,12 @@ proof (rule conjI)
   show "\<forall>oi. (\<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))
              \<longrightarrow> \<not> entails_at oi {Is_Case No_Known_Should}
                                  (Ought_Target No_Known_Should)"
-  proof (rule pigden_universal_where_false)
-    show "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> is_factual phi"
-    proof -
-      have H3: "\<And>phi. phi : {Is_Case No_Known_Should} \<Longrightarrow> is_factual phi"
-      proof -
-        fix phi
-        assume hphi: "phi : {Is_Case No_Known_Should}"
-        have hp: "phi = Is_Case No_Known_Should" using hphi by simp
-        from hp show "is_factual phi" by (simp add: hp)
-      qed
-      show ?thesis by (rule allI, rule impI, erule H3)
-    qed
-  next
-    show "satisfiable {Is_Case No_Known_Should}"
-      unfolding satisfiable_def
-    proof (rule exI[of _ ought], rule exI[of _ "%c. True"])
-      show "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought (%c. True) phi"
-      proof -
-        have H3: "\<And>phi. phi : {Is_Case No_Known_Should} \<Longrightarrow> sat ought (%c. True) phi"
-        proof -
-          fix phi
-          assume hphi: "phi : {Is_Case No_Known_Should}"
-          have hp: "phi = Is_Case No_Known_Should" using hphi by simp
-          from hp show "sat ought (%c. True) phi" by (simp add: hp sat.simps(1))
-        qed
-        show ?thesis by (rule allI, rule impI, erule H3)
-      qed
-    qed
+  proof -
+    have H: "\<forall>oi. (\<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))
+             \<longrightarrow> \<not> entails_at oi {Is_Case No_Known_Should}
+                                 (Ought_Target No_Known_Should)"
+      by (rule pigden_universal_where_false, rule TrueI, rule TrueI)
+    thus ?thesis by (rule H)
   qed
 next
   show "\<not> (\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))"
