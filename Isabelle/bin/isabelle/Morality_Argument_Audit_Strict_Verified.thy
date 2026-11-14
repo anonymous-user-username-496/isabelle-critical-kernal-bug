@@ -98,7 +98,7 @@ proof (rule allI impI)
   fix i
   assume h: "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi"
   show "sat ought i (Ought_Target No_Known_Should)"
-    using ought_no_known by simp
+    using ought_no_known by (simp add: sat.simps)
 qed
 
 theorem pigden_conservativeness:
@@ -106,6 +106,7 @@ theorem pigden_conservativeness:
       and h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h_sat:  "satisfiable F"
   shows "valid M"
+  unfolding valid_def
 proof (rule allI)+
   fix oi i
   from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
@@ -185,9 +186,9 @@ proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
         \<and> \<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
   proof (rule conjI)
     show "sat ought (%c. True) (Ought_Target No_Known_Should)"
-      using ought_no_known by simp
+      using ought_no_known by (simp add: sat.simps)
     show "\<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
-      by simp
+      by (simp add: sat.simps)
   qed
 qed
 
@@ -244,7 +245,7 @@ next
     from h1 obtain i where hi: "\<not> sat ought i (Ought_Target No_Known_Should)"
       by blast
     have h2: "sat ought i (Ought_Target No_Known_Should)"
-      using ought_no_known by simp
+      using ought_no_known by (simp add: sat.simps)
     from hi h2 show False by simp
   qed
 qed
