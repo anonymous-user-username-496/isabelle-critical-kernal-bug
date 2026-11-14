@@ -110,20 +110,14 @@ qed
 lemma my_argument:
   "entails_at ought {Is_Case No_Known_Should} (Ought_Target No_Known_Should)"
   unfolding entails_at_def
-proof -
-  have H: "\<forall>i. (\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi) \<longrightarrow> sat ought i (Ought_Target No_Known_Should)"
-  proof -
-    have H2: "\<And>i. (\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi) \<Longrightarrow> sat ought i (Ought_Target No_Known_Should)"
-    proof -
-      fix i
-      assume h: "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi"
-      show "sat ought i (Ought_Target No_Known_Should)"
-        by (subst sat.simps(2), rule ought_no_known)
-    qed
-    show ?thesis by (rule allI, rule impI, erule H2)
+proof
+  fix i
+  show "(\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi) \<longrightarrow> sat ought i (Ought_Target No_Known_Should)"
+  proof
+    assume h: "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi"
+    show "sat ought i (Ought_Target No_Known_Should)"
+      by (subst sat.simps(2), rule ought_no_known)
   qed
-  show "\<forall>i. (\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi) \<longrightarrow> sat ought i (Ought_Target No_Known_Should)"
-    by (rule H)
 qed
 
 theorem pigden_conservativeness:
@@ -141,7 +135,7 @@ proof -
       from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
         unfolding satisfiable_def by blast
       from h_ent have h_at: "entails_at oi F M"
-        unfolding entails_all_def by (rule allE)
+        unfolding entails_all_def by blast
       show "sat oi i M"
       proof (rule h_at[unfolded entails_at_def, rule_format])
         show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
@@ -197,7 +191,7 @@ lemma countermodel_at_oi:
   shows False
 proof -
   from h_false obtain i where hi: "\<not> sat oi i M" by blast
-  from pigden_local[OF h_ent h_fact h_sat] have hs: "sat oi i M" by (rule allE)
+  have hs: "sat oi i M" using pigden_local[OF h_ent h_fact h_sat] by blast
   from hi hs show False by contradiction
 qed
 
@@ -239,7 +233,7 @@ proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
     show "\<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
       by (subst sat.simps(2), simp)
   qed
-  qed
+qed
 
 theorem pigden_universal_thesis_contradicts_my_argument:
   assumes pigden: "\<forall>oi. \<not> entails_at oi {Is_Case No_Known_Should}
@@ -251,7 +245,7 @@ proof -
     by (rule my_argument)
   have h2: "\<not> entails_at ought {Is_Case No_Known_Should}
                                (Ought_Target No_Known_Should)"
-    using pigden by (rule allE)
+    using pigden by blast
   from h1 h2 show False by contradiction
 qed
 
@@ -299,7 +293,7 @@ next
   proof
     assume h: "\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should)"
     have h1: "\<exists>i. \<not> sat ought i (Ought_Target No_Known_Should)"
-      using h by (rule allE)
+      using h by blast
     from h1 obtain i where hi: "\<not> sat ought i (Ought_Target No_Known_Should)"
       by blast
     have h2: "sat ought i (Ought_Target No_Known_Should)"
