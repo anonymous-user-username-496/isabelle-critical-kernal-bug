@@ -154,8 +154,8 @@ proof -
             from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
             from factual_invariant[of phi oi0 i0 oi i, OF hf] hs show "sat oi i phi" by metis
           qed
-          show ?thesis by (rule allI, rule impI, erule H3)
-        qed
+          show ?thesis
+        qed (rule allI, rule impI, erule H3)
       qed
     qed
     show ?thesis by (rule allI, rule allI, erule H2)
@@ -188,8 +188,8 @@ proof -
             from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
             from factual_invariant[of phi oi0 i0 oi i, OF hf] hs show "sat oi i phi" by metis
           qed
-          show ?thesis by (rule allI, rule impI, erule H3)
-        qed
+          show ?thesis
+        qed (rule allI, rule impI, erule H3)
       qed
     qed
     show ?thesis by (rule allI, erule H2)
@@ -282,7 +282,7 @@ proof (rule conjI)
         fix phi
         assume hphi: "phi : {Is_Case No_Known_Should}"
         have hp: "phi = Is_Case No_Known_Should" using hphi by simp
-        from hp show "is_factual phi" by (simp add: hp)
+        from hp show "is_factual phi" by (subst hp, simp)
       qed
     next
       show "satisfiable {Is_Case No_Known_Should}"
@@ -293,7 +293,7 @@ proof (rule conjI)
           fix phi
           assume hphi: "phi : {Is_Case No_Known_Should}"
           have hp: "phi = Is_Case No_Known_Should" using hphi by simp
-          from hp show "sat ought (%c. True) phi" by (simp add: hp sat.simps(1))
+          from hp show "sat ought (%c. True) phi" by (subst hp, simp add: sat.simps(1))
         qed
       qed
     qed
