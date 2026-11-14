@@ -140,8 +140,9 @@ proof -
       fix oi i
       from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
         unfolding satisfiable_def by blast
+      (* Explicitly instantiate function-typed quantifier oi via rule application *)
       have h_at: "entails_at oi F M"
-        using h_ent [unfolded entails_all_def, rule_format, of oi] .
+        by (rule h_ent [unfolded entails_all_def, rule_format, of oi])
       show "sat oi i M"
       proof (rule h_at[unfolded entails_at_def, rule_format])
         show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
@@ -197,7 +198,9 @@ lemma countermodel_at_oi:
   shows False
 proof -
   from h_false obtain i where hi: "\<not> sat oi i M" by blast
-  have hs: "sat oi i M" using pigden_local[OF h_ent h_fact h_sat, rule_format, of i] .
+  (* Explicitly instantiate function-typed quantifier i via rule application *)
+  have hs: "sat oi i M"
+    by (rule pigden_local[OF h_ent h_fact h_sat, rule_format, of i])
   from hi hs show False by contradiction
 qed
 
@@ -239,7 +242,7 @@ proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
     show "\<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
       by (subst sat.simps(2), simp)
   qed
-  qed
+qed
 
 theorem pigden_universal_thesis_contradicts_my_argument:
   assumes pigden: "\<forall>oi. \<not> entails_at oi {Is_Case No_Known_Should}
@@ -249,9 +252,10 @@ proof -
   have h1: "entails_at ought {Is_Case No_Known_Should}
                             (Ought_Target No_Known_Should)"
     by (rule my_argument)
+  (* Explicitly instantiate function-typed quantifier oi with ought via rule application *)
   have h2: "\<not> entails_at ought {Is_Case No_Known_Should}
                                (Ought_Target No_Known_Should)"
-    using pigden [rule_format, of ought] .
+    by (rule pigden [rule_format, of ought])
   from h1 h2 show False by contradiction
 qed
 
@@ -290,7 +294,7 @@ proof (rule conjI)
             from hp show "sat ought (%c. True) phi" by (subst hp, simp add: sat.simps(1))
           qed
         qed
-      qed
+      dne
     qed
     thus ?thesis .
   qed
@@ -298,8 +302,9 @@ next
   show "\<not> (\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))"
   proof
     assume h: "\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should)"
+    (* Explicitly instantiate function-typed quantifier oi with ought via rule application *)
     have h1: "\<exists>i. \<not> sat ought i (Ought_Target No_Known_Should)"
-      using h [rule_format, of ought] .
+      by (rule h [rule_format, of ought])
     from h1 obtain i where hi: "\<not> sat ought i (Ought_Target No_Known_Should)"
       by blast
     have h2: "sat ought i (Ought_Target No_Known_Should)"
