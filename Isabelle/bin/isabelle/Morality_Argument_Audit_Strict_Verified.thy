@@ -10,16 +10,16 @@ definition should_known :: "knowledge_case => bool" where
   "should_known c = (c = Known_Should)"
 
 definition should_to_be_found :: "knowledge_case => bool" where
-  "should_to_be_found c = (c ~= Known_Should)"
+  "should_to_be_found c = (\<not> should_known c)"
 
 definition ought :: "knowledge_case => bool" where
-  "ought c = (should_known c | should_to_be_found c)"
+  "ought c = (should_known c \<or> should_to_be_found c)"
 
 theorem should_status_exhaustive:
-  "!c. should_known c | should_to_be_found c"
+  "\<forall>c. should_known c \<or> should_to_be_found c"
 proof
   fix c
-  show "should_known c | should_to_be_found c"
+  show "should_known c \<or> should_to_be_found c"
     unfolding should_known_def should_to_be_found_def
     by (cases c) auto
 qed
@@ -39,38 +39,38 @@ type_synonym interp = "knowledge_case => bool"
 fun sat :: "interp => interp => syn_form => bool" where
   "sat oi i (Is_Case c)      = (c = No_Known_Should)"
 | "sat oi i (Ought_Target c) = (oi c)"
-| "sat oi i (Not A)          = (~ sat oi i A)"
-| "sat oi i (Imp A C)        = (sat oi i A --> sat oi i C)"
+| "sat oi i (Not A)          = (\<not> sat oi i A)"
+| "sat oi i (Imp A C)        = (sat oi i A \<longrightarrow> sat oi i C)"
 
 primrec is_factual :: "syn_form => bool" where
   "is_factual (Is_Case _)      = True"
 | "is_factual (Ought_Target _) = False"
 | "is_factual (Not A)          = is_factual A"
-| "is_factual (Imp A C)        = (is_factual A & is_factual C)"
+| "is_factual (Imp A C)        = (is_factual A \<and> is_factual C)"
 
 definition entails_at :: "interp => syn_form set => syn_form => bool" where
-  "entails_at oi F M = (!i. (!phi. phi : F --> sat oi i phi) --> sat oi i M)"
+  "entails_at oi F M = (\<forall>i. (\<forall>phi. phi : F \<longrightarrow> sat oi i phi) \<longrightarrow> sat oi i M)"
 
 definition entails_all :: "syn_form set => syn_form => bool" where
-  "entails_all F M = (!oi. entails_at oi F M)"
+  "entails_all F M = (\<forall>oi. entails_at oi F M)"
 
 definition satisfiable :: "syn_form set => bool" where
-  "satisfiable F = (?oi. ?i. (!phi. phi : F --> sat oi i phi))"
+  "satisfiable F = (\<exists>oi. \<exists>i. (\<forall>phi. phi : F \<longrightarrow> sat oi i phi))"
 
 definition valid :: "syn_form => bool" where
-  "valid M = (!oi. !i. sat oi i M)"
+  "valid M = (\<forall>oi. \<forall>i. sat oi i M)"
 
 definition substantive :: "syn_form => bool" where
-  "substantive M = (~ valid M)"
+  "substantive M = (\<not> valid M)"
 
 lemma factual_invariant:
-  "is_factual phi ==> sat oi i phi = sat oi' i' phi"
+  "is_factual phi \<Longrightarrow> sat oi i phi = sat oi' i' phi"
   by (induction phi) simp_all
 
 lemma factual_entails_at_indep_fwd:
-  assumes h_fact: "!phi. phi : F --> is_factual phi"
-      and h: "!phi. phi : F --> sat oi i phi"
-  shows "!phi. phi : F --> sat oi' i' phi"
+  assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
+      and h: "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
+  shows "\<forall>phi. phi : F \<longrightarrow> sat oi' i' phi"
 proof
   fix phi
   assume hphi: "phi : F"
@@ -80,9 +80,9 @@ proof
 qed
 
 lemma factual_entails_at_indep_bwd:
-  assumes h_fact: "!phi. phi : F --> is_factual phi"
-      and h: "!phi. phi : F --> sat oi' i' phi"
-  shows "!phi. phi : F --> sat oi i phi"
+  assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
+      and h: "\<forall>phi. phi : F \<longrightarrow> sat oi' i' phi"
+  shows "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
 proof
   fix phi
   assume hphi: "phi : F"
@@ -96,25 +96,25 @@ lemma my_argument:
   unfolding entails_at_def
 proof (rule allI impI)
   fix i
-  assume h: "!phi. phi : {Is_Case No_Known_Should} --> sat ought i phi"
+  assume h: "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi"
   show "sat ought i (Ought_Target No_Known_Should)"
     by (simp add: ought_no_known)
 qed
 
 theorem pigden_conservativeness:
   assumes h_ent: "entails_all F M"
-      and h_fact: "!phi. phi : F --> is_factual phi"
+      and h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h_sat:  "satisfiable F"
   shows "valid M"
 proof (rule allI)+
   fix oi i
-  from h_sat obtain oi0 i0 where oi0: "!phi. phi : F --> sat oi0 i0 phi"
+  from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
     unfolding satisfiable_def by blast
   from h_ent have h_at: "entails_at oi F M"
     unfolding entails_all_def by (rule allE)
   show "sat oi i M"
   proof (rule h_at[unfolded entails_at_def, rule_format])
-    show "!phi. phi : F --> sat oi i phi"
+    show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
     proof
       fix phi
       assume hphi: "phi : F"
@@ -127,16 +127,16 @@ qed
 
 lemma pigden_local:
   assumes h_ent: "entails_at oi F M"
-      and h_fact: "!phi. phi : F --> is_factual phi"
+      and h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h_sat:  "satisfiable F"
-  shows "!i. sat oi i M"
+  shows "\<forall>i. sat oi i M"
 proof
   fix i
-  from h_sat obtain oi0 i0 where oi0: "!phi. phi : F --> sat oi0 i0 phi"
+  from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
     unfolding satisfiable_def by blast
   show "sat oi i M"
   proof (rule h_ent[unfolded entails_at_def, rule_format])
-    show "!phi. phi : F --> sat oi i phi"
+    show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
     proof
       fix phi
       assume hphi: "phi : F"
@@ -149,24 +149,24 @@ qed
 
 lemma countermodel_at_oi:
   assumes h_ent: "entails_at oi F M"
-      and h_fact: "!phi. phi : F --> is_factual phi"
+      and h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h_sat:  "satisfiable F"
-      and h_false: "?i. ~ sat oi i M"
+      and h_false: "\<exists>i. \<not> sat oi i M"
   shows False
 proof -
-  from h_false obtain i where hi: "~ sat oi i M" by blast
+  from h_false obtain i where hi: "\<not> sat oi i M" by blast
   from pigden_local[OF h_ent h_fact h_sat] have "sat oi i M" by (rule allE)
   with hi show False by simp
 qed
 
 lemma pigden_universal_where_false:
-  assumes h_fact: "!phi. phi : F --> is_factual phi"
+  assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h_sat:  "satisfiable F"
-  shows "!oi. (?i. ~ sat oi i M) --> ~ entails_at oi F M"
+  shows "\<forall>oi. (\<exists>i. \<not> sat oi i M) \<longrightarrow> \<not> entails_at oi F M"
 proof (rule allI impI)
   fix oi
-  assume h: "?i. ~ sat oi i M"
-  show "~ entails_at oi F M"
+  assume h: "\<exists>i. \<not> sat oi i M"
+  show "\<not> entails_at oi F M"
   proof
     assume h_ent: "entails_at oi F M"
     from countermodel_at_oi[OF h_ent h_fact h_sat h] show False .
@@ -174,7 +174,7 @@ proof (rule allI impI)
 qed
 
 definition non_vacuous :: "syn_form => bool" where
-  "non_vacuous M = (?oi1. ?oi2. ?i1. ?i2. sat oi1 i1 M & ~ sat oi2 i2 M)"
+  "non_vacuous M = (\<exists>oi1. \<exists>oi2. \<exists>i1. \<exists>i2. sat oi1 i1 M \<and> \<not> sat oi2 i2 M)"
 
 lemma ought_non_vacuous:
   "non_vacuous (Ought_Target No_Known_Should)"
@@ -182,40 +182,40 @@ lemma ought_non_vacuous:
 proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
        rule exI[of _ "%c. True"], rule exI[of _ "%c. True"])
   show "sat ought (%c. True) (Ought_Target No_Known_Should)
-        & ~ sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
+        \<and> \<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
   proof (rule conjI)
     show "sat ought (%c. True) (Ought_Target No_Known_Should)"
       by (simp add: ought_no_known)
-    show "~ sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
+    show "\<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
       by simp
   qed
 qed
 
 theorem pigden_universal_thesis_contradicts_my_argument:
-  assumes pigden: "!oi. ~ entails_at oi {Is_Case No_Known_Should}
+  assumes pigden: "\<forall>oi. \<not> entails_at oi {Is_Case No_Known_Should}
                               (Ought_Target No_Known_Should)"
   shows False
 proof -
   have h1: "entails_at ought {Is_Case No_Known_Should}
                             (Ought_Target No_Known_Should)"
     by (rule my_argument)
-  have h2: "~ entails_at ought {Is_Case No_Known_Should}
+  have h2: "\<not> entails_at ought {Is_Case No_Known_Should}
                                (Ought_Target No_Known_Should)"
     using pigden by (rule allE)
   from h1 h2 show False by simp
 qed
 
 theorem pigden_theorem_scope_concrete:
-  "(!oi. (?i. ~ sat oi i (Ought_Target No_Known_Should))
-         --> ~ entails_at oi {Is_Case No_Known_Should}
+  "(\<forall>oi. (\<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))
+         \<longrightarrow> \<not> entails_at oi {Is_Case No_Known_Should}
                              (Ought_Target No_Known_Should))
-   & (~ (!oi. ?i. ~ sat oi i (Ought_Target No_Known_Should)))"
+   \<and> (\<not> (\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should)))"
 proof (rule conjI)
-  show "!oi. (?i. ~ sat oi i (Ought_Target No_Known_Should))
-             --> ~ entails_at oi {Is_Case No_Known_Should}
+  show "\<forall>oi. (\<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))
+             \<longrightarrow> \<not> entails_at oi {Is_Case No_Known_Should}
                                  (Ought_Target No_Known_Should)"
   proof (rule pigden_universal_where_false)
-    show "!phi. phi : {Is_Case No_Known_Should} --> is_factual phi"
+    show "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> is_factual phi"
     proof
       fix phi
       assume hphi: "phi : {Is_Case No_Known_Should}"
@@ -226,7 +226,7 @@ proof (rule conjI)
     show "satisfiable {Is_Case No_Known_Should}"
       unfolding satisfiable_def
     proof (rule exI[of _ ought], rule exI[of _ "%c. True"])
-      show "!phi. phi : {Is_Case No_Known_Should} --> sat ought (%c. True) phi"
+      show "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought (%c. True) phi"
       proof
         fix phi
         assume hphi: "phi : {Is_Case No_Known_Should}"
@@ -236,12 +236,12 @@ proof (rule conjI)
     qed
   qed
 next
-  show "~ (!oi. ?i. ~ sat oi i (Ought_Target No_Known_Should))"
+  show "\<not> (\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))"
   proof
-    assume h: "!oi. ?i. ~ sat oi i (Ought_Target No_Known_Should)"
-    have h1: "?i. ~ sat ought i (Ought_Target No_Known_Should)"
+    assume h: "\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should)"
+    have h1: "\<exists>i. \<not> sat ought i (Ought_Target No_Known_Should)"
       using h by (rule allE)
-    from h1 obtain i where hi: "~ sat ought i (Ought_Target No_Known_Should)"
+    from h1 obtain i where hi: "\<not> sat ought i (Ought_Target No_Known_Should)"
       by blast
     have h2: "sat ought i (Ought_Target No_Known_Should)"
       by (simp add: ought_no_known)
