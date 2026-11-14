@@ -1,4 +1,4 @@
-theory Morality_Argument_Audit_Strict_Verified
+theory Morality_Pigden_Full
   imports Main
 begin
 
@@ -46,7 +46,7 @@ type_synonym interp = "knowledge_case => bool"
 
 primrec sat :: "interp => interp => syn_form => bool" where
   "sat O I (Is_Case c)      = (c = No_Known_Should)"
-| "sat O I (Ought_Target c) = O c"
+| "sat O I (Ought_Target c) = (O c)"
 | "sat O I (Not A)          = (~ sat O I A)"
 | "sat O I (Imp A C)        = (sat O I A --> sat O I C)"
 
@@ -125,7 +125,6 @@ qed
 
 (* ============================================================= *)
 (* Part 6: PIGDEN'S CONSERVATIVENESS THEOREM.                     *)
-(* Factual satisfiable premises entail only valid conclusions.    *)
 (* ============================================================= *)
 
 theorem pigden_conservativeness:
@@ -236,10 +235,6 @@ qed
 
 (* ============================================================= *)
 (* Part 11: THE CONTRADICTION.                                    *)
-(* If Pigden's thesis is stated universally -- forall O.          *)
-(* ~entails_at O F M -- then it contradicts my argument at        *)
-(* O = ought.  This is the direct, one-counterexample             *)
-(* contradiction.                                                 *)
 (* ============================================================= *)
 
 theorem pigden_universal_thesis_contradicts_my_argument:
