@@ -83,29 +83,28 @@ lemma factual_invariant:
   "is_factual phi ==> sat oi I phi = sat oi' I' phi"
   by (induction phi) simp_all
 
-lemma factual_entails_at_indep:
+lemma factual_entails_at_indep_fwd:
   assumes h_fact: "!phi. phi : F --> is_factual phi"
-  shows "(!phi. phi : F --> sat oi I phi) = (!phi. phi : F --> sat oi' I' phi)"
-proof (rule iffI)
-  assume h: "!phi. phi : F --> sat oi I phi"
-  show "!phi. phi : F --> sat oi' I' phi"
-  proof
-    fix phi
-    assume hphi: "phi : F"
-    with h_fact have "is_factual phi" by blast
-    with factual_invariant[of phi oi I oi' I'] h hphi
-    show "sat oi' I' phi" by simp
-  qed
-next
-  assume h: "!phi. phi : F --> sat oi' I' phi"
-  show "!phi. phi : F --> sat oi I phi"
-  proof
-    fix phi
-    assume hphi: "phi : F"
-    with h_fact have "is_factual phi" by blast
-    with factual_invariant[of phi oi' I' oi I] h hphi
-    show "sat oi I phi" by simp
-  qed
+      and h: "!phi. phi : F --> sat oi I phi"
+  shows "!phi. phi : F --> sat oi' I' phi"
+proof
+  fix phi
+  assume hphi: "phi : F"
+  with h_fact have "is_factual phi" by blast
+  with factual_invariant[of phi oi I oi' I'] h hphi
+  show "sat oi' I' phi" by simp
+qed
+
+lemma factual_entails_at_indep_bwd:
+  assumes h_fact: "!phi. phi : F --> is_factual phi"
+      and h: "!phi. phi : F --> sat oi' I' phi"
+  shows "!phi. phi : F --> sat oi I phi"
+proof
+  fix phi
+  assume hphi: "phi : F"
+  with h_fact have "is_factual phi" by blast
+  with factual_invariant[of phi oi' I' oi I] h hphi
+  show "sat oi I phi" by simp
 qed
 
 (* ============================================================= *)
