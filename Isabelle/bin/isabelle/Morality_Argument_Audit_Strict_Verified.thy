@@ -1,4 +1,4 @@
-theory Morality_Pigden_Full
+theory Morality_Argument_Audit_Strict_Verified
   imports Main
 begin
 
