@@ -85,7 +85,7 @@ proof -
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
   thus ?thesis .
-qed
+  qed
 
 lemma factual_entails_at_indep_bwd:
   assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
@@ -105,7 +105,7 @@ proof -
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
   thus ?thesis .
-qed
+  qed
 
 lemma my_argument:
   "entails_at ought {Is_Case No_Known_Should} (Ought_Target No_Known_Should)"
@@ -124,7 +124,7 @@ proof -
   qed
   show "\<forall>i. (\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi) \<longrightarrow> sat ought i (Ought_Target No_Known_Should)"
     by (rule H)
-qed
+  qed
 
 theorem pigden_conservativeness:
   assumes h_ent: "entails_all F M"
@@ -140,9 +140,8 @@ proof -
       fix oi i
       from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
         unfolding satisfiable_def by blast
-      -- "Line 153: Using Isar chaining instead of rule application"
       have h_at: "entails_at oi F M"
-        using h_ent [unfolded entails_all_def, rule_format, of oi] .
+        using h_ent unfolding entails_all_def by blast
       show "sat oi i M"
       proof (rule h_at[unfolded entails_at_def, rule_format])
         show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
@@ -158,7 +157,7 @@ proof -
     show ?thesis by (rule allI, rule allI, erule H2)
   qed
   show "\<forall>oi i. sat oi i M" by (rule H)
-qed
+  qed
 
 lemma pigden_local:
   assumes h_ent: "entails_at oi F M"
@@ -188,7 +187,7 @@ proof -
     show ?thesis by (rule allI, erule H2)
   qed
   thus ?thesis .
-qed
+  qed
 
 lemma countermodel_at_oi:
   assumes h_ent: "entails_at oi F M"
@@ -198,11 +197,9 @@ lemma countermodel_at_oi:
   shows False
 proof -
   from h_false obtain i where hi: "\<not> sat oi i M" by blast
-  -- "Line 183: Using Isar chaining instead of rule application"
-  have hs: "sat oi i M"
-    using pigden_local[OF h_ent h_fact h_sat, rule_format, of i] .
+  have hs: "sat oi i M" using pigden_local[OF h_ent h_fact h_sat] by blast
   from hi hs show False by contradiction
-qed
+  qed
 
 lemma pigden_universal_where_false:
   assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
@@ -224,7 +221,7 @@ proof -
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
   thus ?thesis .
-qed
+  qed
 
 definition non_vacuous :: "syn_form => bool" where
   "non_vacuous M = (\<exists>oi1. \<exists>oi2. \<exists>i1. \<exists>i2. sat oi1 i1 M \<and> \<not> sat oi2 i2 M)"
@@ -242,7 +239,7 @@ proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
     show "\<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
       by (subst sat.simps(2), simp)
   qed
-qed
+  qed
 
 theorem pigden_universal_thesis_contradicts_my_argument:
   assumes pigden: "\<forall>oi. \<not> entails_at oi {Is_Case No_Known_Should}
@@ -254,9 +251,9 @@ proof -
     by (rule my_argument)
   have h2: "\<not> entails_at ought {Is_Case No_Known_Should}
                                (Ought_Target No_Known_Should)"
-    using pigden [rule_format, of ought] .
+    using pigden by blast
   from h1 h2 show False by contradiction
-qed
+  qed
 
 theorem pigden_theorem_scope_concrete:
   "(\<forall>oi. (\<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))
@@ -301,15 +298,14 @@ next
   show "\<not> (\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))"
   proof
     assume h: "\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should)"
-    -- "Line 278: Using Isar chaining instead of rule application"
     have h1: "\<exists>i. \<not> sat ought i (Ought_Target No_Known_Should)"
-      using h [rule_format, of ought] .
+      using h by blast
     from h1 obtain i where hi: "\<not> sat ought i (Ought_Target No_Known_Should)"
       by blast
     have h2: "sat ought i (Ought_Target No_Known_Should)"
       by (subst sat.simps(2), rule ought_no_known)
     from hi h2 show False by contradiction
   qed
-qed
+  qed
 
 end
