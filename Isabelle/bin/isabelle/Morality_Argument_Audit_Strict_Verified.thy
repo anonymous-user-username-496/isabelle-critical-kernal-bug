@@ -1,4 +1,4 @@
-theory Morality_Argument_Audit_Strict_Verified
+theory Morality_Argument_Audit_Strict_Verifier
   imports Main
 begin
 
@@ -44,11 +44,11 @@ datatype syn_form =
 
 type_synonym interp = "knowledge_case => bool"
 
-primrec sat :: "interp => interp => syn_form => bool" where
-  "sat o I (Is_Case c)      = (c = No_Known_Should)"
-| "sat o I (Ought_Target c) = (o c)"
-| "sat o I (Not A)          = (~ sat o I A)"
-| "sat o I (Imp A C)        = (sat o I A --> sat o I C)"
+fun sat :: "interp => interp => syn_form => bool" where
+  "sat oi I (Is_Case c)      = (c = No_Known_Should)"
+| "sat oi I (Ought_Target c) = (oi c)"
+| "sat oi I (Not A)          = (~ sat oi I A)"
+| "sat oi I (Imp A C)        = (sat oi I A --> sat oi I C)"
 
 primrec is_factual :: "syn_form => bool" where
   "is_factual (Is_Case _)      = True"
@@ -61,16 +61,16 @@ primrec is_factual :: "syn_form => bool" where
 (* ============================================================= *)
 
 definition entails_at :: "interp => syn_form set => syn_form => bool" where
-  "entails_at o F M = (!I. (!phi. phi : F --> sat o I phi) --> sat o I M)"
+  "entails_at oi F M = (!I. (!phi. phi : F --> sat oi I phi) --> sat oi I M)"
 
 definition entails_all :: "syn_form set => syn_form => bool" where
-  "entails_all F M = (!o. entails_at o F M)"
+  "entails_all F M = (!oi. entails_at oi F M)"
 
 definition satisfiable :: "syn_form set => bool" where
-  "satisfiable F = (?o I. !phi. phi : F --> sat o I phi)"
+  "satisfiable F = (?oi I. !phi. phi : F --> sat oi I phi)"
 
 definition valid :: "syn_form => bool" where
-  "valid M = (!o I. sat o I M)"
+  "valid M = (!oi I. sat oi I M)"
 
 definition substantive :: "syn_form => bool" where
   "substantive M = (~ valid M)"
@@ -80,31 +80,31 @@ definition substantive :: "syn_form => bool" where
 (* ============================================================= *)
 
 lemma factual_invariant:
-  "is_factual phi ==> sat o I phi = sat o' I' phi"
+  "is_factual phi ==> sat oi I phi = sat oi' I' phi"
   by (induction phi) simp_all
 
 lemma factual_entails_at_indep:
   assumes h_fact: "!phi. phi : F --> is_factual phi"
-  shows "(!phi. phi : F --> sat o I phi) = (!phi. phi : F --> sat o' I' phi)"
+  shows "(!phi. phi : F --> sat oi I phi) = (!phi. phi : F --> sat oi' I' phi)"
 proof (rule iffI)
-  assume h: "!phi. phi : F --> sat o I phi"
-  show "!phi. phi : F --> sat o' I' phi"
+  assume h: "!phi. phi : F --> sat oi I phi"
+  show "!phi. phi : F --> sat oi' I' phi"
   proof
     fix phi
     assume hphi: "phi : F"
     with h_fact have "is_factual phi" by blast
-    with factual_invariant[of phi o I o' I'] h hphi
-    show "sat o' I' phi" by simp
+    with factual_invariant[of phi oi I oi' I'] h hphi
+    show "sat oi' I' phi" by simp
   qed
 next
-  assume h: "!phi. phi : F --> sat o' I' phi"
-  show "!phi. phi : F --> sat o I phi"
+  assume h: "!phi. phi : F --> sat oi' I' phi"
+  show "!phi. phi : F --> sat oi I phi"
   proof
     fix phi
     assume hphi: "phi : F"
     with h_fact have "is_factual phi" by blast
-    with factual_invariant[of phi o' I' o I] h hphi
-    show "sat o I phi" by simp
+    with factual_invariant[of phi oi' I' oi I] h hphi
+    show "sat oi I phi" by simp
   qed
 qed
 
@@ -132,20 +132,20 @@ theorem pigden_conservativeness:
       and h_sat:  "satisfiable F"
   shows "valid M"
 proof (rule allI)+
-  fix o I
-  from h_sat obtain o0 I0 where o0: "!phi. phi : F --> sat o0 I0 phi"
+  fix oi I
+  from h_sat obtain oi0 I0 where oi0: "!phi. phi : F --> sat oi0 I0 phi"
     unfolding satisfiable_def by blast
-  from h_ent have h_at: "entails_at o F M"
+  from h_ent have h_at: "entails_at oi F M"
     unfolding entails_all_def by (rule allE)
-  show "sat o I M"
+  show "sat oi I M"
   proof (rule h_at[unfolded entails_at_def, rule_format])
-    show "!phi. phi : F --> sat o I phi"
+    show "!phi. phi : F --> sat oi I phi"
     proof
       fix phi
       assume hphi: "phi : F"
       with h_fact have "is_factual phi" by blast
-      with factual_invariant[of phi o0 I0 o I] o0 hphi
-      show "sat o I phi" by simp
+      with factual_invariant[of phi oi0 I0 oi I] oi0 hphi
+      show "sat oi I phi" by simp
     qed
   qed
 qed
@@ -155,23 +155,23 @@ qed
 (* ============================================================= *)
 
 lemma pigden_local:
-  assumes h_ent: "entails_at o F M"
+  assumes h_ent: "entails_at oi F M"
       and h_fact: "!phi. phi : F --> is_factual phi"
       and h_sat:  "satisfiable F"
-  shows "!I. sat o I M"
+  shows "!I. sat oi I M"
 proof
   fix I
-  from h_sat obtain o0 I0 where o0: "!phi. phi : F --> sat o0 I0 phi"
+  from h_sat obtain oi0 I0 where oi0: "!phi. phi : F --> sat oi0 I0 phi"
     unfolding satisfiable_def by blast
-  show "sat o I M"
+  show "sat oi I M"
   proof (rule h_ent[unfolded entails_at_def, rule_format])
-    show "!phi. phi : F --> sat o I phi"
+    show "!phi. phi : F --> sat oi I phi"
     proof
       fix phi
       assume hphi: "phi : F"
       with h_fact have "is_factual phi" by blast
-      with factual_invariant[of phi o0 I0 o I] o0 hphi
-      show "sat o I phi" by simp
+      with factual_invariant[of phi oi0 I0 oi I] oi0 hphi
+      show "sat oi I phi" by simp
     qed
   qed
 qed
@@ -180,15 +180,15 @@ qed
 (* Part 8: countermodel lemma.                                    *)
 (* ============================================================= *)
 
-lemma countermodel_at_O:
-  assumes h_ent: "entails_at o F M"
+lemma countermodel_at_oi:
+  assumes h_ent: "entails_at oi F M"
       and h_fact: "!phi. phi : F --> is_factual phi"
       and h_sat:  "satisfiable F"
-      and h_false: "?I. ~ sat o I M"
+      and h_false: "?I. ~ sat oi I M"
   shows False
 proof -
-  from h_false obtain I where hI: "~ sat o I M" by blast
-  from pigden_local[OF h_ent h_fact h_sat] have "sat o I M" by (rule allE)
+  from h_false obtain I where hI: "~ sat oi I M" by blast
+  from pigden_local[OF h_ent h_fact h_sat] have "sat oi I M" by (rule allE)
   with hI show False by simp
 qed
 
@@ -199,14 +199,14 @@ qed
 lemma pigden_universal_where_false:
   assumes h_fact: "!phi. phi : F --> is_factual phi"
       and h_sat:  "satisfiable F"
-  shows "!o. (?I. ~ sat o I M) --> ~ entails_at o F M"
+  shows "!oi. (?I. ~ sat oi I M) --> ~ entails_at oi F M"
 proof (rule allI impI)
-  fix o
-  assume h: "?I. ~ sat o I M"
-  show "~ entails_at o F M"
+  fix oi
+  assume h: "?I. ~ sat oi I M"
+  show "~ entails_at oi F M"
   proof
-    assume h_ent: "entails_at o F M"
-    from countermodel_at_O[OF h_ent h_fact h_sat h] show False .
+    assume h_ent: "entails_at oi F M"
+    from countermodel_at_oi[OF h_ent h_fact h_sat h] show False .
   qed
 qed
 
@@ -215,7 +215,7 @@ qed
 (* ============================================================= *)
 
 definition non_vacuous :: "syn_form => bool" where
-  "non_vacuous M = (?o1 o2 I1 I2. sat o1 I1 M & ~ sat o2 I2 M)"
+  "non_vacuous M = (?oi1 oi2 I1 I2. sat oi1 I1 M & ~ sat oi2 I2 M)"
 
 lemma ought_non_vacuous:
   "non_vacuous (Ought_Target No_Known_Should)"
@@ -237,7 +237,7 @@ qed
 (* ============================================================= *)
 
 theorem pigden_universal_thesis_contradicts_my_argument:
-  assumes pigden: "!o. ~ entails_at o {Is_Case No_Known_Should}
+  assumes pigden: "!oi. ~ entails_at oi {Is_Case No_Known_Should}
                               (Ought_Target No_Known_Should)"
   shows False
 proof -
@@ -252,38 +252,43 @@ qed
 
 (* ============================================================= *)
 (* Part 12: WHAT PIGDEN'S THEOREM ACTUALLY PROVES.                *)
+(* Instantiated concretely.                                       *)
 (* ============================================================= *)
 
-theorem pigden_theorem_scope:
-  "(!o. (?I. ~ sat o I M) --> ~ entails_at o F M)
-   & (~ (!o. ?I. ~ sat o I M))"
+theorem pigden_theorem_scope_concrete:
+  "(!oi. (?I. ~ sat oi I (Ought_Target No_Known_Should))
+         --> ~ entails_at oi {Is_Case No_Known_Should}
+                             (Ought_Target No_Known_Should))
+   & (~ (!oi. ?I. ~ sat oi I (Ought_Target No_Known_Should)))"
 proof (rule conjI)
-  show "!o. (?I. ~ sat o I M) --> ~ entails_at o F M"
+  show "!oi. (?I. ~ sat oi I (Ought_Target No_Known_Should))
+             --> ~ entails_at oi {Is_Case No_Known_Should}
+                                 (Ought_Target No_Known_Should)"
   proof (rule pigden_universal_where_false)
-    show "!phi. phi : F --> is_factual phi"
+    show "!phi. phi : {Is_Case No_Known_Should} --> is_factual phi"
     proof
       fix phi
-      assume hphi: "phi : F"
+      assume hphi: "phi : {Is_Case No_Known_Should}"
       show "is_factual phi"
         using hphi by simp
     qed
   next
-    show "satisfiable F"
+    show "satisfiable {Is_Case No_Known_Should}"
       unfolding satisfiable_def
     proof (rule exI[of _ ought], rule exI[of _ "%c. True"])
-      show "!phi. phi : F --> sat ought (%c. True) phi"
+      show "!phi. phi : {Is_Case No_Known_Should} --> sat ought (%c. True) phi"
       proof
         fix phi
-        assume hphi: "phi : F"
+        assume hphi: "phi : {Is_Case No_Known_Should}"
         show "sat ought (%c. True) phi"
           using hphi by simp
       qed
     qed
   qed
 next
-  show "~ (!o. ?I. ~ sat o I M)"
+  show "~ (!oi. ?I. ~ sat oi I (Ought_Target No_Known_Should))"
   proof
-    assume h: "!o. ?I. ~ sat o I M"
+    assume h: "!oi. ?I. ~ sat oi I (Ought_Target No_Known_Should)"
     have h1: "?I. ~ sat ought I (Ought_Target No_Known_Should)"
       using h by (rule allE)
     from h1 obtain I where hI: "~ sat ought I (Ought_Target No_Known_Should)"
