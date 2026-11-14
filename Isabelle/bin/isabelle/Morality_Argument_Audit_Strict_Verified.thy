@@ -71,34 +71,46 @@ lemma factual_entails_at_indep_fwd:
   assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h: "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
   shows "\<forall>phi. phi : F \<longrightarrow> sat oi' i' phi"
-proof
-  fix phi
-  assume hphi: "phi : F"
-  from h_fact have hf: "is_factual phi" using hphi by blast
-  from h have hs: "sat oi i phi" using hphi by blast
-  from factual_invariant[of phi oi i oi' i', OF hf] hs show "sat oi' i' phi" by metis
+proof -
+  have "\<And>phi. phi : F \<Longrightarrow> sat oi' i' phi"
+  proof -
+    fix phi
+    assume hphi: "phi : F"
+    from h_fact have hf: "is_factual phi" using hphi by blast
+    from h have hs: "sat oi i phi" using hphi by blast
+    from factual_invariant[of phi oi i oi' i', OF hf] hs show "sat oi' i' phi" by metis
+  qed
+  thus ?thesis by (rule allI, rule impI, assumption)
 qed
 
 lemma factual_entails_at_indep_bwd:
   assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h: "\<forall>phi. phi : F \<longrightarrow> sat oi' i' phi"
   shows "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
-proof
-  fix phi
-  assume hphi: "phi : F"
-  from h_fact have hf: "is_factual phi" using hphi by blast
-  from h have hs: "sat oi' i' phi" using hphi by blast
-  from factual_invariant[of phi oi' i' oi i, OF hf] hs show "sat oi i phi" by metis
+proof -
+  have "\<And>phi. phi : F \<Longrightarrow> sat oi i phi"
+  proof -
+    fix phi
+    assume hphi: "phi : F"
+    from h_fact have hf: "is_factual phi" using hphi by blast
+    from h have hs: "sat oi' i' phi" using hphi by blast
+    from factual_invariant[of phi oi' i' oi i, OF hf] hs show "sat oi i phi" by metis
+  qed
+  thus ?thesis by (rule allI, rule impI, assumption)
 qed
 
 lemma my_argument:
   "entails_at ought {Is_Case No_Known_Should} (Ought_Target No_Known_Should)"
   unfolding entails_at_def
-proof (rule allI impI)
-  fix i
-  assume h: "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi"
-  show "sat ought i (Ought_Target No_Known_Should)"
-    by (subst sat.simps(2), rule ought_no_known)
+proof -
+  have "\<And>i. (\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi) \<Longrightarrow> sat ought i (Ought_Target No_Known_Should)"
+  proof -
+    fix i
+    assume h: "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi"
+    show "sat ought i (Ought_Target No_Known_Should)"
+      by (subst sat.simps(2), rule ought_no_known)
+  qed
+  thus ?thesis by (rule allI, rule impI)
 qed
 
 theorem pigden_conservativeness:
@@ -107,23 +119,27 @@ theorem pigden_conservativeness:
       and h_sat:  "satisfiable F"
   shows "valid M"
   unfolding valid_def
-proof (rule allI)+
-  fix oi i
-  from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
-    unfolding satisfiable_def by blast
-  from h_ent have h_at: "entails_at oi F M"
-    unfolding entails_all_def by (rule allE)
-  show "sat oi i M"
-  proof (rule h_at[unfolded entails_at_def, rule_format])
-    show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
-    proof
-      fix phi
-      assume hphi: "phi : F"
-      from h_fact have hf: "is_factual phi" using hphi by blast
-      from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
-      from factual_invariant[of phi oi0 i0 oi i, OF hf] hs show "sat oi i phi" by metis
+proof -
+  have "\<And>oi i. sat oi i M"
+  proof -
+    fix oi i
+    from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
+      unfolding satisfiable_def by blast
+    from h_ent have h_at: "entails_at oi F M"
+      unfolding entails_all_def by (rule allE)
+    show "sat oi i M"
+    proof (rule h_at[unfolded entails_at_def, rule_format])
+      show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
+      proof
+        fix phi
+        assume hphi: "phi : F"
+        from h_fact have hf: "is_factual phi" using hphi by blast
+        from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
+        from factual_invariant[of phi oi0 i0 oi i, OF hf] hs show "sat oi i phi" by metis
+      qed
     qed
   qed
+  thus ?thesis by (rule allI)+
 qed
 
 lemma pigden_local:
@@ -131,21 +147,25 @@ lemma pigden_local:
       and h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h_sat:  "satisfiable F"
   shows "\<forall>i. sat oi i M"
-proof
-  fix i
-  from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
-    unfolding satisfiable_def by blast
-  show "sat oi i M"
-  proof (rule h_ent[unfolded entails_at_def, rule_format])
-    show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
-    proof
-      fix phi
-      assume hphi: "phi : F"
-      from h_fact have hf: "is_factual phi" using hphi by blast
-      from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
-      from factual_invariant[of phi oi0 i0 oi i, OF hf] hs show "sat oi i phi" by metis
+proof -
+  have "\<And>i. sat oi i M"
+  proof -
+    fix i
+    from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
+      unfolding satisfiable_def by blast
+    show "sat oi i M"
+    proof (rule h_ent[unfolded entails_at_def, rule_format])
+      show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
+      proof
+        fix phi
+        assume hphi: "phi : F"
+        from h_fact have hf: "is_factual phi" using hphi by blast
+        from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
+        from factual_invariant[of phi oi0 i0 oi i, OF hf] hs show "sat oi i phi" by metis
+      qed
     qed
   qed
+  thus ?thesis by (rule allI)
 qed
 
 lemma countermodel_at_oi:
@@ -164,14 +184,18 @@ lemma pigden_universal_where_false:
   assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h_sat:  "satisfiable F"
   shows "\<forall>oi. (\<exists>i. \<not> sat oi i M) \<longrightarrow> \<not> entails_at oi F M"
-proof (rule allI impI)
-  fix oi
-  assume h: "\<exists>i. \<not> sat oi i M"
-  show "\<not> entails_at oi F M"
-  proof
-    assume h_ent: "entails_at oi F M"
-    from countermodel_at_oi[OF h_ent h_fact h_sat h] show False by contradiction
+proof -
+  have "\<And>oi. (\<exists>i. \<not> sat oi i M) \<Longrightarrow> \<not> entails_at oi F M"
+  proof -
+    fix oi
+    assume h: "\<exists>i. \<not> sat oi i M"
+    show "\<not> entails_at oi F M"
+    proof
+      assume h_ent: "entails_at oi F M"
+      from countermodel_at_oi[OF h_ent h_fact h_sat h] show False by contradiction
+    qed
   qed
+  thus ?thesis by (rule allI, rule impI)
 qed
 
 definition non_vacuous :: "syn_form => bool" where
