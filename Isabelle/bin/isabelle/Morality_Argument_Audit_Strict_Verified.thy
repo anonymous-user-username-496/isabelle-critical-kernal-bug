@@ -134,7 +134,7 @@ proof -
       fix oi i
       from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
         unfolding satisfiable_def by blast
-      -- "Explicitly instantiate function-typed quantifier oi via [rule_format, of oi]"
+      -- "Explicitly instantiate function-typed quantifieroi via [rule_format, of oi]"
       have h_at: "entails_at oi F M"
         using h_ent [unfolded entails_all_def, rule_format, of oi] .
       show "sat oi i M"
