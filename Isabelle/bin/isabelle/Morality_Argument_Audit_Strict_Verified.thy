@@ -140,8 +140,9 @@ proof -
       fix oi i
       from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
         unfolding satisfiable_def by blast
-      have h_at: "entails_at oi F M" 
-        using spec [OF h_ent [unfolded entails_all_def]] .
+      -- "Point-free theorem instantiation avoids 'have' binders and name collisions"
+      have h_at: "entails_at oi F M"
+        using spec [OF h_ent [unfolded entails_all_def], of oi] .
       show "sat oi i M"
       proof (rule h_at[unfolded entails_at_def, rule_format])
         show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
@@ -157,7 +158,7 @@ proof -
     show ?thesis by (rule allI, rule allI, erule H2)
   end
   show "\<forall>oi i. sat oi i M" by (rule H)
-  end
+qed
 
 lemma pigden_local:
   assumes h_ent: "entails_at oi F M"
@@ -185,9 +186,9 @@ proof -
       end
     qed
     show ?thesis by (rule allI, erule H2)
-  qed
-  thus ?thesis .
   end
+  thus ?thesis .
+qed
 
 lemma countermodel_at_oi:
   assumes h_ent: "entails_at oi F M"
@@ -197,10 +198,11 @@ lemma countermodel_at_oi:
   shows False
 proof -
   from h_false obtain i0 where hi0: "\<not> sat oi i0 M" by blast
-  have hs: "sat oi i0 M" 
-    using spec [OF pigden_local[OF h_ent h_fact h_sat]] .
+  -- "Point-free theorem instantiation"
+  have hs: "sat oi i0 M"
+    using spec [OF pigden_local[OF h_ent h_fact h_sat], of i0] .
   from hi0 hs show False by contradiction
-  end
+qed
 
 lemma pigden_universal_where_false:
   assumes h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
@@ -218,11 +220,11 @@ proof -
         assume h_ent: "entails_at oi F M"
         from countermodel_at_oi[OF h_ent h_fact h_sat h] show False by assumption
       qed
-    qed
+    end
     show ?thesis by (rule allI, rule impI, erule H2)
   end
   thus ?thesis .
-  end
+qed
 
 definition non_vacuous :: "syn_form => bool" where
   "non_vacuous M = (\<exists>oi1. \<exists>oi2. \<exists>i1. \<exists>i2. sat oi1 i1 M \<and> \<not> sat oi2 i2 M)"
@@ -240,7 +242,7 @@ proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
     show "\<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
       by (subst sat.simps(2), simp)
   qed
-  end
+qed
 
 theorem pigden_universal_thesis_contradicts_my_argument:
   assumes pigden: "\<forall>oi. \<not> entails_at oi {Is_Case No_Known_Should}
@@ -250,11 +252,12 @@ proof -
   have h1: "entails_at ought {Is_Case No_Known_Should}
                             (Ought_Target No_Known_Should)"
     by (rule my_argument)
+  -- "Point-free theorem instantiation"
   have h2: "\<not> entails_at ought {Is_Case No_Known_Should}
                                (Ought_Target No_Known_Should)"
     using spec [OF pigden, of ought] .
   from h1 h2 show False by contradiction
-  end
+qed
 
 theorem pigden_theorem_scope_concrete:
   "(\<forall>oi. (\<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))
@@ -299,6 +302,7 @@ next
   show "\<not> (\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))"
   proof
     assume h: "\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should)"
+    -- "Point-free theorem instantiation"
     have h1: "\<exists>i. \<not> sat ought i (Ought_Target No_Known_Should)"
       using spec [OF h, of ought] .
     from h1 obtain i0 where hi0: "\<not> sat ought i0 (Ought_Target No_Known_Should)"
@@ -307,6 +311,6 @@ next
       by (subst sat.simps(2), rule ought_no_known)
     from hi0 h2 show False by contradiction
   qed
-  end
+end
 
 end
