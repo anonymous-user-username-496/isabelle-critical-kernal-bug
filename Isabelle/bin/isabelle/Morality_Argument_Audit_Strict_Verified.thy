@@ -98,7 +98,7 @@ proof (rule allI impI)
   fix i
   assume h: "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi"
   show "sat ought i (Ought_Target No_Known_Should)"
-    by (simp add: ought_no_known)
+    using ought_no_known by simp
 qed
 
 theorem pigden_conservativeness:
@@ -185,7 +185,7 @@ proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
         \<and> \<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
   proof (rule conjI)
     show "sat ought (%c. True) (Ought_Target No_Known_Should)"
-      by (simp add: ought_no_known)
+      using ought_no_known by simp
     show "\<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
       by simp
   qed
@@ -244,7 +244,7 @@ next
     from h1 obtain i where hi: "\<not> sat ought i (Ought_Target No_Known_Should)"
       by blast
     have h2: "sat ought i (Ought_Target No_Known_Should)"
-      by (simp add: ought_no_known)
+      using ought_no_known by simp
     from hi h2 show False by simp
   qed
 qed
