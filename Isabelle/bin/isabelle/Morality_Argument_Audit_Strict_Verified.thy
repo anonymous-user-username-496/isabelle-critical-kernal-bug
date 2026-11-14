@@ -141,7 +141,7 @@ proof -
       from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
         unfolding satisfiable_def by blast
       have h_at: "entails_at oi F M"
-        using h_ent unfolding entails_all_def by blast
+        using h_ent [unfolded entails_all_def, rule_format, of oi] .
       show "sat oi i M"
       proof (rule h_at[unfolded entails_at_def, rule_format])
         show "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
@@ -197,7 +197,7 @@ lemma countermodel_at_oi:
   shows False
 proof -
   from h_false obtain i where hi: "\<not> sat oi i M" by blast
-  have hs: "sat oi i M" using pigden_local[OF h_ent h_fact h_sat] by blast
+  have hs: "sat oi i M" using pigden_local[OF h_ent h_fact h_sat, rule_format, of i] .
   from hi hs show False by contradiction
 qed
 
@@ -251,7 +251,7 @@ proof -
     by (rule my_argument)
   have h2: "\<not> entails_at ought {Is_Case No_Known_Should}
                                (Ought_Target No_Known_Should)"
-    using pigden by blast
+    using pigden [rule_format, of ought] .
   from h1 h2 show False by contradiction
 qed
 
@@ -299,7 +299,7 @@ next
   proof
     assume h: "\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should)"
     have h1: "\<exists>i. \<not> sat ought i (Ought_Target No_Known_Should)"
-      using h by blast
+      using h [rule_format, of ought] .
     from h1 obtain i where hi: "\<not> sat ought i (Ought_Target No_Known_Should)"
       by blast
     have h2: "sat ought i (Ought_Target No_Known_Should)"
