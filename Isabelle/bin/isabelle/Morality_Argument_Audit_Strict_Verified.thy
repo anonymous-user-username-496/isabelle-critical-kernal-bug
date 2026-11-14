@@ -154,8 +154,8 @@ proof -
             from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
             from factual_invariant[of phi oi0 i0 oi i, OF hf] hs show "sat oi i phi" by metis
           qed
-          show ?thesis
-        qed (rule allI, rule impI, erule H3)
+          show ?thesis by (rule allI, rule impI, erule H3)
+        qed
       qed
     qed
     show ?thesis by (rule allI, rule allI, erule H2)
@@ -188,8 +188,8 @@ proof -
             from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
             from factual_invariant[of phi oi0 i0 oi i, OF hf] hs show "sat oi i phi" by metis
           qed
-          show ?thesis
-        qed (rule allI, rule impI, erule H3)
+          show ?thesis by (rule allI, rule impI, erule H3)
+        qed
       qed
     qed
     show ?thesis by (rule allI, erule H2)
