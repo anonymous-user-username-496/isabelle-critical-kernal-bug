@@ -2,10 +2,6 @@ theory Morality_Argument_Audit_Strict_Verified
   imports Main
 begin
 
-(* ============================================================= *)
-(* Part 1: base definitions.                                     *)
-(* ============================================================= *)
-
 datatype knowledge_case =
     Known_Should
   | No_Known_Should
@@ -32,10 +28,6 @@ lemma ought_no_known:
   "ought No_Known_Should"
   unfolding ought_def should_known_def should_to_be_found_def by simp
 
-(* ============================================================= *)
-(* Part 2: syntax and semantics.                                 *)
-(* ============================================================= *)
-
 datatype syn_form =
     Is_Case knowledge_case
   | Ought_Target knowledge_case
@@ -56,10 +48,6 @@ primrec is_factual :: "syn_form => bool" where
 | "is_factual (Not A)          = is_factual A"
 | "is_factual (Imp A C)        = (is_factual A & is_factual C)"
 
-(* ============================================================= *)
-(* Part 3: entailment relations.                                  *)
-(* ============================================================= *)
-
 definition entails_at :: "interp => syn_form set => syn_form => bool" where
   "entails_at oi F M = (!I. (!phi. phi : F --> sat oi I phi) --> sat oi I M)"
 
@@ -67,17 +55,13 @@ definition entails_all :: "syn_form set => syn_form => bool" where
   "entails_all F M = (!oi. entails_at oi F M)"
 
 definition satisfiable :: "syn_form set => bool" where
-  "satisfiable F = (?oi I. !phi. phi : F --> sat oi I phi)"
+  "satisfiable F = (?oi. ?I. !phi. phi : F --> sat oi I phi)"
 
 definition valid :: "syn_form => bool" where
-  "valid M = (!oi I. sat oi I M)"
+  "valid M = (!oi. !I. sat oi I M)"
 
 definition substantive :: "syn_form => bool" where
   "substantive M = (~ valid M)"
-
-(* ============================================================= *)
-(* Part 4: invariance of factual formulas.                        *)
-(* ============================================================= *)
 
 lemma factual_invariant:
   "is_factual phi ==> sat oi I phi = sat oi' I' phi"
@@ -107,10 +91,6 @@ proof
   show "sat oi I phi" by simp
 qed
 
-(* ============================================================= *)
-(* Part 5: YOUR ARGUMENT.                                         *)
-(* ============================================================= *)
-
 lemma my_argument:
   "entails_at ought {Is_Case No_Known_Should} (Ought_Target No_Known_Should)"
   unfolding entails_at_def
@@ -120,10 +100,6 @@ proof (rule allI impI)
   show "sat ought I (Ought_Target No_Known_Should)"
     by (simp add: ought_no_known)
 qed
-
-(* ============================================================= *)
-(* Part 6: PIGDEN'S CONSERVATIVENESS THEOREM.                     *)
-(* ============================================================= *)
 
 theorem pigden_conservativeness:
   assumes h_ent: "entails_all F M"
@@ -149,10 +125,6 @@ proof (rule allI)+
   qed
 qed
 
-(* ============================================================= *)
-(* Part 7: PIGDEN'S REDUCTIO AT A FIXED O.                        *)
-(* ============================================================= *)
-
 lemma pigden_local:
   assumes h_ent: "entails_at oi F M"
       and h_fact: "!phi. phi : F --> is_factual phi"
@@ -175,10 +147,6 @@ proof
   qed
 qed
 
-(* ============================================================= *)
-(* Part 8: countermodel lemma.                                    *)
-(* ============================================================= *)
-
 lemma countermodel_at_oi:
   assumes h_ent: "entails_at oi F M"
       and h_fact: "!phi. phi : F --> is_factual phi"
@@ -190,10 +158,6 @@ proof -
   from pigden_local[OF h_ent h_fact h_sat] have "sat oi I M" by (rule allE)
   with hI show False by simp
 qed
-
-(* ============================================================= *)
-(* Part 9: derived universal-where-false theorem.                 *)
-(* ============================================================= *)
 
 lemma pigden_universal_where_false:
   assumes h_fact: "!phi. phi : F --> is_factual phi"
@@ -209,12 +173,8 @@ proof (rule allI impI)
   qed
 qed
 
-(* ============================================================= *)
-(* Part 10: non-vacuity.                                          *)
-(* ============================================================= *)
-
 definition non_vacuous :: "syn_form => bool" where
-  "non_vacuous M = (?oi1 oi2 I1 I2. sat oi1 I1 M & ~ sat oi2 I2 M)"
+  "non_vacuous M = (?oi1. ?oi2. ?I1. ?I2. sat oi1 I1 M & ~ sat oi2 I2 M)"
 
 lemma ought_non_vacuous:
   "non_vacuous (Ought_Target No_Known_Should)"
@@ -231,10 +191,6 @@ proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
   qed
 qed
 
-(* ============================================================= *)
-(* Part 11: THE CONTRADICTION.                                    *)
-(* ============================================================= *)
-
 theorem pigden_universal_thesis_contradicts_my_argument:
   assumes pigden: "!oi. ~ entails_at oi {Is_Case No_Known_Should}
                               (Ought_Target No_Known_Should)"
@@ -248,11 +204,6 @@ proof -
     using pigden by (rule allE)
   from h1 h2 show False by simp
 qed
-
-(* ============================================================= *)
-(* Part 12: WHAT PIGDEN'S THEOREM ACTUALLY PROVES.                *)
-(* Instantiated concretely.                                       *)
-(* ============================================================= *)
 
 theorem pigden_theorem_scope_concrete:
   "(!oi. (?I. ~ sat oi I (Ought_Target No_Known_Should))
