@@ -76,8 +76,7 @@ proof
   assume hphi: "phi : F"
   from h_fact have hf: "is_factual phi" using hphi by blast
   from h have hs: "sat oi i phi" using hphi by blast
-  from factual_invariant[of phi oi i oi' i', OF hf] hs
-  show "sat oi' i' phi" by simp
+  from factual_invariant[OF hf] hs show "sat oi' i' phi" by blast
 qed
 
 lemma factual_entails_at_indep_bwd:
@@ -89,8 +88,7 @@ proof
   assume hphi: "phi : F"
   from h_fact have hf: "is_factual phi" using hphi by blast
   from h have hs: "sat oi' i' phi" using hphi by blast
-  from factual_invariant[of phi oi' i' oi i, OF hf] hs
-  show "sat oi i phi" by simp
+  from factual_invariant[OF hf] hs show "sat oi i phi" by blast
 qed
 
 lemma my_argument:
@@ -100,7 +98,7 @@ proof (rule allI impI)
   fix i
   assume h: "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi"
   show "sat ought i (Ought_Target No_Known_Should)"
-    by (subst sat.simps, simp add: ought_no_known)
+    by (simp add: sat.simps ought_no_known)
 qed
 
 theorem pigden_conservativeness:
@@ -123,8 +121,7 @@ proof (rule allI)+
       assume hphi: "phi : F"
       from h_fact have hf: "is_factual phi" using hphi by blast
       from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
-      from factual_invariant[of phi oi0 i0 oi i, OF hf] hs
-      show "sat oi i phi" by simp
+      from factual_invariant[OF hf] hs show "sat oi i phi" by blast
     qed
   qed
 qed
@@ -146,8 +143,7 @@ proof
       assume hphi: "phi : F"
       from h_fact have hf: "is_factual phi" using hphi by blast
       from oi0 have hs: "sat oi0 i0 phi" using hphi by blast
-      from factual_invariant[of phi oi0 i0 oi i, OF hf] hs
-      show "sat oi i phi" by simp
+      from factual_invariant[OF hf] hs show "sat oi i phi" by blast
     qed
   qed
 qed
@@ -160,8 +156,8 @@ lemma countermodel_at_oi:
   shows False
 proof -
   from h_false obtain i where hi: "\<not> sat oi i M" by blast
-  from pigden_local[OF h_ent h_fact h_sat] have "sat oi i M" by (rule allE)
-  with hi show False by (rule notE)
+  from pigden_local[OF h_ent h_fact h_sat] have hs: "sat oi i M" by (rule allE)
+  from hi hs show False by (rule notE)
 qed
 
 lemma pigden_universal_where_false:
@@ -174,7 +170,7 @@ proof (rule allI impI)
   show "\<not> entails_at oi F M"
   proof
     assume h_ent: "entails_at oi F M"
-    from countermodel_at_oi[OF h_ent h_fact h_sat h] show False .
+    from h_ent h_fact h_sat h show False by (rule countermodel_at_oi)
   qed
 qed
 
@@ -190,9 +186,9 @@ proof (rule exI[of _ ought], rule exI[of _ "%c. False"],
         \<and> \<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
   proof (rule conjI)
     show "sat ought (%c. True) (Ought_Target No_Known_Should)"
-      by (subst sat.simps, simp add: ought_no_known)
+      by (simp add: sat.simps ought_no_known)
     show "\<not> sat (%c. False) (%c. True) (Ought_Target No_Known_Should)"
-      by (subst sat.simps, simp)
+      by (simp add: sat.simps)
   qed
 qed
 
@@ -224,8 +220,8 @@ proof (rule conjI)
     proof
       fix phi
       assume hphi: "phi : {Is_Case No_Known_Should}"
-      show "is_factual phi"
-        using hphi by simp
+      have hp: "phi = Is_Case No_Known_Should" using hphi by simp
+      from hp show "is_factual phi" by simp
     qed
   next
     show "satisfiable {Is_Case No_Known_Should}"
@@ -235,8 +231,8 @@ proof (rule conjI)
       proof
         fix phi
         assume hphi: "phi : {Is_Case No_Known_Should}"
-        show "sat ought (%c. True) phi"
-          using hphi by (subst sat.simps, simp)
+        have hp: "phi = Is_Case No_Known_Should" using hphi by simp
+        from hp show "sat ought (%c. True) phi" by (simp add: sat.simps)
       qed
     qed
   qed
@@ -249,7 +245,7 @@ next
     from h1 obtain i where hi: "\<not> sat ought i (Ought_Target No_Known_Should)"
       by blast
     have h2: "sat ought i (Ought_Target No_Known_Should)"
-      by (subst sat.simps, simp add: ought_no_known)
+      by (simp add: sat.simps ought_no_known)
     from hi h2 show False by (rule notE)
   qed
 qed
