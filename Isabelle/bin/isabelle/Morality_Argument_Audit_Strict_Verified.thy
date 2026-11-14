@@ -121,7 +121,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
-  thus ?thesis by (unfold entails_at_def, rule H)
+  thus ?thesis by (subst entails_at_def, rule H)
 qed
 
 theorem pigden_conservativeness:
@@ -157,7 +157,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule allI, erule H2)
   qed
-  thus ?thesis by (unfold valid_def, rule H)
+  thus ?thesis by (subst valid_def, rule H)
 qed
 
 lemma pigden_local:
