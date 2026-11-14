@@ -132,7 +132,7 @@ theorem pigden_conservativeness:
 proof -
   have H: "\<forall>oi i. sat oi i M"
   proof -
-    have H2: "\&oi i. sat oi i M"
+    have H2: "\<And>oi i. sat oi i M"
     proof -
       fix oi i
       from h_sat obtain oi0 i0 where oi0: "\<forall>phi. phi : F \<longrightarrow> sat oi0 i0 phi"
@@ -308,6 +308,7 @@ next
       by (subst sat.simps(2), rule ought_no_known)
     from hi h2 show False by contradiction
   qed
+  qeds
 qed
 
 end
