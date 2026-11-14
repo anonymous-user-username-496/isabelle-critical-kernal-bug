@@ -84,7 +84,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
-  thus ?thesis by (rule H)
+  thus ?thesis .
 qed
 
 lemma factual_entails_at_indep_bwd:
@@ -104,7 +104,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
-  thus ?thesis by (rule H)
+  thus ?thesis .
 qed
 
 lemma my_argument:
@@ -122,7 +122,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
-  thus ?thesis by (rule H)
+  thus ?thesis .
 qed
 
 theorem pigden_conservativeness:
@@ -159,7 +159,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule allI, erule H2)
   qed
-  thus ?thesis by (rule H)
+  thus ?thesis .
 qed
 
 lemma pigden_local:
@@ -193,7 +193,7 @@ proof -
     qed
     show ?thesis by (rule allI, erule H2)
   qed
-  thus ?thesis by (rule H)
+  thus ?thesis .
 qed
 
 lemma countermodel_at_oi:
@@ -227,7 +227,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
-  thus ?thesis by (rule H)
+  thus ?thesis .
 qed
 
 definition non_vacuous :: "syn_form => bool" where
@@ -275,8 +275,28 @@ proof (rule conjI)
     have H: "\<forall>oi. (\<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))
              \<longrightarrow> \<not> entails_at oi {Is_Case No_Known_Should}
                                  (Ought_Target No_Known_Should)"
-      by (rule pigden_universal_where_false, rule TrueI, rule TrueI)
-    thus ?thesis by (rule H)
+    proof (rule pigden_universal_where_false)
+      show "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> is_factual phi"
+      proof
+        fix phi
+        assume hphi: "phi : {Is_Case No_Known_Should}"
+        have hp: "phi = Is_Case No_Known_Should" using hphi by simp
+        from hp show "is_factual phi" by (simp add: hp)
+      qed
+    next
+      show "satisfiable {Is_Case No_Known_Should}"
+        unfolding satisfiable_def
+      proof (rule exI[of _ ought], rule exI[of _ "%c. True"])
+        show "\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought (%c. True) phi"
+        proof
+          fix phi
+          assume hphi: "phi : {Is_Case No_Known_Should}"
+          have hp: "phi = Is_Case No_Known_Should" using hphi by simp
+          from hp show "sat ought (%c. True) phi" by (simp add: hp sat.simps(1))
+        qed
+      qed
+    qed
+    thus ?thesis .
   qed
 next
   show "\<not> (\<forall>oi. \<exists>i. \<not> sat oi i (Ought_Target No_Known_Should))"
