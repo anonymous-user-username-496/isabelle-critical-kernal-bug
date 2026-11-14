@@ -72,7 +72,7 @@ lemma factual_entails_at_indep_fwd:
       and h: "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
   shows "\<forall>phi. phi : F \<longrightarrow> sat oi' i' phi"
 proof -
-  have H: "\<forall>phi. phi : F \<longrightarrow> sat oi' i' phi"
+  have H: "\<forall>phi. phi : F \<longrightarrow> sat oi' i' phi" (is "\<forall>phi. ?P phi")
   proof -
     have H2: "\<And>phi. phi : F \<Longrightarrow> sat oi' i' phi"
     proof -
@@ -92,7 +92,7 @@ lemma factual_entails_at_indep_bwd:
       and h: "\<forall>phi. phi : F \<longrightarrow> sat oi' i' phi"
   shows "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
 proof -
-  have H: "\<forall>phi. phi : F \<longrightarrow> sat oi i phi"
+  have H: "\<forall>phi. phi : F \<longrightarrow> sat oi i phi" (is "\<forall>phi. ?P phi")
   proof -
     have H2: "\<And>phi. phi : F \<Longrightarrow> sat oi i phi"
     proof -
@@ -109,7 +109,6 @@ qed
 
 lemma my_argument:
   "entails_at ought {Is_Case No_Known_Should} (Ought_Target No_Known_Should)"
-  unfolding entails_at_def
 proof -
   have H: "\<forall>i. (\<forall>phi. phi : {Is_Case No_Known_Should} \<longrightarrow> sat ought i phi) \<longrightarrow> sat ought i (Ought_Target No_Known_Should)"
   proof -
@@ -122,7 +121,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule impI, erule H2)
   qed
-  thus ?thesis .
+  thus ?thesis by (unfold entails_at_def, rule H)
 qed
 
 theorem pigden_conservativeness:
@@ -130,7 +129,6 @@ theorem pigden_conservativeness:
       and h_fact: "\<forall>phi. phi : F \<longrightarrow> is_factual phi"
       and h_sat:  "satisfiable F"
   shows "valid M"
-  unfolding valid_def
 proof -
   have H: "\<forall>oi i. sat oi i M"
   proof -
@@ -159,7 +157,7 @@ proof -
     qed
     show ?thesis by (rule allI, rule allI, erule H2)
   qed
-  thus ?thesis .
+  thus ?thesis by (unfold valid_def, rule H)
 qed
 
 lemma pigden_local:
@@ -168,7 +166,7 @@ lemma pigden_local:
       and h_sat:  "satisfiable F"
   shows "\<forall>i. sat oi i M"
 proof -
-  have H: "\<forall>i. sat oi i M"
+  have H: "\<forall>i. sat oi i M" (is "\<forall>i. ?P i")
   proof -
     have H2: "\<And>i. sat oi i M"
     proof -
@@ -213,7 +211,7 @@ lemma pigden_universal_where_false:
       and h_sat:  "satisfiable F"
   shows "\<forall>oi. (\<exists>i. \<not> sat oi i M) \<longrightarrow> \<not> entails_at oi F M"
 proof -
-  have H: "\<forall>oi. (\<exists>i. \<not> sat oi i M) \<longrightarrow> \<not> entails_at oi F M"
+  have H: "\<forall>oi. (\<exists>i. \<not> sat oi i M) \<longrightarrow> \<not> entails_at oi F M" (is "\<forall>oi. ?P oi")
   proof -
     have H2: "\<And>oi. (\<exists>i. \<not> sat oi i M) \<Longrightarrow> \<not> entails_at oi F M"
     proof -
